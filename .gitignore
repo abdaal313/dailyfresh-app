@@ -1,0 +1,51 @@
+E
+# Environment variables
+.env
+.env.local
+.env.*.local
+ 
+# Node modules
+node_modules/
+package-lock.json
+ 
+# Uploads directory
+uploads/
+ 
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+ 
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+ 
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+ 
+# Temporary files
+tmp/
+temp/
+*.tmp
+ 
+# Database backups
+*.sql
+*.backup
+*.bak
+ 
+# Sensitive files
+config.js
+secrets.js
+credentials.json
+private-key.*
+ 
+# Build
+dist/
+build/

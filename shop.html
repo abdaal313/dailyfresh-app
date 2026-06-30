@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyFresh | The Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; padding: 20px; }
+        .product-card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; text-align: center; background: white; }
+        .product-card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+        .qty-control { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 15px 0; }
+        .qty-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: #e2e8f0; cursor: pointer; }
+        .qty-display { font-weight: bold; min-width: 20px; }
+        #cart-items { list-style: none; padding: 0; margin: 0; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .checkout-area { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+    <nav class="raised-panel">
+        <div class="logo">Dairy<span>Fresh</span></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="shop.html" style="color: var(--accent);">Shop</a>
+        </div>
+        <button class="cart-btn raised-button" onclick="document.getElementById('cart-section').scrollIntoView({behavior:'smooth'});">
+            Cart (<span id="cart-count">0</span>)
+        </button>
+    </nav>
+
+    <section id="shop" style="padding-top: 2rem;">
+        <h2 class="section-title">Complete Inventory</h2>
+        <div id="menu-container" class="product-grid">
+            <p>Loading products...</p>
+        </div>
+    </section>
+
+    <section id="cart-section" style="padding: 2rem;">
+        <h2 class="section-title">Your Order Tray</h2>
+        <ul id="cart-items"></ul>
+        <div class="checkout-area inset-panel" style="margin-top: 1.5rem; padding: 1.5rem;">
+            <h3>Total: ₹<span id="cart-total">0.00</span></h3>
+            <a href="checkout.html" class="checkout-btn raised-button">Proceed to Checkout</a>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+    <script>
+    // 1. Store quantities locally for the UI
+    const quantities = {};
+
+    // 2. Fetch and render the menu
+    async function loadMenu() {
+        try {
+            // Using absolute URL to bypass the Live Server mismatch
+            const res = await fetch('http://localhost:3000/api/menu');
+            
+            if (!res.ok) {
+                throw new Error(`Server responded with status: ${res.status}`);
+            }
+
+            const menu = await res.json();
+            const container = document.getElementById('menu-container');
+            container.innerHTML = ''; 
+            
+            if (!menu || menu.length === 0) {
+                container.innerHTML = '<p>No items found in inventory.</p>';
+                return;
+            }
+
+            menu.forEach(item => {
+                quantities[item.name] = 1; // Default quantity
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const imageUrl = item.image && item.image !== 'default.jpg' 
+                    ? `http://localhost:3000/uploads/${item.image}` 
+                    : 'placeholder.jpg';
+
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.name}" crossorigin="anonymous" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22150%22 height=%22150%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                    <h3>${item.name}</h3>
+                    <p>Price: ₹${parseFloat(item.price).toFixed(2)}</p>
+                    
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="updateQty('${item.name}', -1)">-</button>
+                        <span class="qty-display" id="qty-${item.name}">1</span>
+                        <button class="qty-btn" onclick="updateQty('${item.name}', 1)">+</button>
+                    </div>
+                    
+                    <button class="raised-button" onclick="handleAddToCart('${item.name}', ${item.price}, '${item.image}')">Add to Tray</button>
+                `;
+                container.appendChild(card);
+            });
+        } catch (err) {
+            console.error("Menu load error:", err);
+            const container = document.getElementById('menu-container');
+            if (container) {
+                container.innerHTML = '<p style="color: red; text-align: center;">Error loading inventory. Please make sure the backend server is running.</p>';
+            }
+        }
+    }
+
+    // 3. Handle the + and - buttons
+    function updateQty(name, change) {
+        const display = document.getElementById(`qty-${name}`);
+        if (!display) return;
+        
+        let val = parseInt(display.innerText) + change;
+        if (val < 1) val = 1; // Prevent negative or zero quantities
+        
+        display.innerText = val;
+        quantities[name] = val;
+    }
+
+    // 4. Handle the "Add to Tray" button click (This was the missing function!)
+    function handleAddToCart(name, price, image) {
+        const qty = quantities[name] || 1;
+        
+        // This connects to the 'addToCart' function inside your external script.js file
+        if (typeof window.addToCart === 'function') {
+            window.addToCart(name, price, qty, image); 
+        } else {
+            console.error("Cart logic not found. Ensure <script src='script.js'> is loaded above this script.");
+            alert("Cart system not loaded. Please check the console.");
+        }
+    }
+
+    // 5. Start the process when the page loads
+    document.addEventListener('DOMContentLoaded', loadMenu);
+</script>
+</body>
+</html>

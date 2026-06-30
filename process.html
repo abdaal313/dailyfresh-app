@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyFresh | The Process</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 1. NAVIGATION -->
+    <nav class="raised-panel">
+        <div class="logo">Daily<span>Fresh</span></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="process.html" style="color: var(--accent);">Process</a>
+            <a href="index.html#shop">Shop</a>
+        </div>
+        <!-- Sends the user back to the main page to view their cart -->
+        <button class="cart-btn raised-button" onclick="window.location.href='index.html#cart-section';">
+            Cart (<span id="cart-count">0</span>)
+        </button>
+    </nav>
+
+    <!-- 2. THE PROCESS TIMELINE -->
+    <main style="min-height: 70vh; padding-top: 2rem;">
+        <section class="process-section">
+            <h2 class="section-title">The Extraction Protocol</h2>
+            
+            <div class="process-timeline">
+                
+                <div class="process-step raised-panel">
+                    <div class="step-number inset-panel">01</div>
+                    <h3>The Harvest</h3>
+                    <p>We source 100% organic, pesticide-free produce directly from homes at peak physical quality.</p>
+                </div>
+
+                <div class="process-step raised-panel">
+                    <div class="step-number inset-panel">02</div>
+                    <h3>Purification</h3>
+                    <p>Every product undergoes a triple-filtered ozone wash to remove impurities, and microscopic residue.</p>
+                </div>
+
+                <div class="process-step raised-panel">
+                    <div class="step-number inset-panel">03</div>
+                    <h3>Cold-Pressing</h3>
+                    <p>Using two tons of hydraulic pressure, we physically crush the produce. Zero heat is applied, preserving every living enzyme.</p>
+                </div>
+
+                <div class="process-step raised-panel">
+                    <div class="step-number inset-panel">04</div>
+                    <h3>The Seal</h3>
+                    <p>Bottled instantly in UV-protected glass to lock in the absolute maximum nutritional profile. From press to packet in minutes.</p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- 3. FOOTER -->
+    <footer class="raised-panel">
+        <div class="footer-content">
+            <div class="brand">Daily<span>Fresh</span></div>
+            <p>321,pampur,pulwama,192121</p>
+        </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

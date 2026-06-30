@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DairyFresh | Pure Cold-Pressed</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Video Background */
+        .video-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .video-container video { width: 100%; height: 100%; object-fit: cover; }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 244, 248, 0.85); }
+
+        /* Navigation - Your Theme */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 80px; position: relative; z-index: 2; }
+        .nav-links a { margin-left: 25px; text-decoration: none; color: #4a5568; font-weight: 600; }
+        
+        /* Hero - Centered & Professional */
+        .hero { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; position: relative; z-index: 1; }
+        .hero h1 { font-size: 3.5rem; color: #2d3748; margin-bottom: 20px; line-height: 1.2; }
+        .hero h1 span { color: #f6ad55; } /* Accent color */
+        .hero p { font-size: 1.25rem; color: #718096; max-width: 650px; margin-bottom: 40px; }
+
+        /* Feature Row - Your Theme */
+        .feature-bar { display: flex; gap: 40px; margin-top: 20px; }
+        .feature-item { font-weight: 600; color: #4a5568; }
+
+        @media (max-width: 768px) {
+            nav { padding: 20px; }
+            .hero h1 { font-size: 2.2rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-container">
+        <video autoplay muted loop playsinline>
+            <source src="bg-dairy.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+    </div>
+
+    <nav class="raised-panel">
+        <div class="logo">Dairy<span>Fresh</span></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="shop.html">Shop</a>
+            <a href="shop.html" class="raised-button" style="padding: 10px 20px; text-decoration: none;">Order Now</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Squeezed by Nature — <span>Pure Juices</span> in Minutes</h1>
+        <p>Experience the tactile difference of 100% raw, cold-pressed vitality. Order your favorite blends today, delivered fresh.</p>
+        
+        <button class="raised-button" style="padding: 15px 40px; font-size: 1.1rem;" onclick="window.location.href='shop.html'">Browse Shop</button>
+
+        <div class="feature-bar">
+            <span class="feature-item">⚡ Freshly Pressed</span>
+            <span class="feature-item">💳 COD & Online Payments</span>
+            <span class="feature-item">🚚 Fast Local Delivery</span>
+        </div>
+    </header>
+    <!-- Why Choose Us Section -->
+    <section id="why-us" style="padding: 60px 5%; position: relative; z-index: 1;">
+        <h2 style="text-align: center; color: #2d3748; margin-bottom: 40px; font-size: 2.5rem;">Why Choose Us</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px;">
+            
+            <div class="raised-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🌿</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Premium Quality</h3>
+                <p style="color: #718096; line-height: 1.6;">We use only 100% natural, farm-fresh ingredients with absolutely no preservatives or added sugars.</p>
+            </div>
+
+            <div class="raised-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">❄️</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Cold-Pressed Tech</h3>
+                <p style="color: #718096; line-height: 1.6;">Our advanced hydraulic press extracts maximum nutrients, keeping every drop as healthy as nature intended.</p>
+            </div>
+
+            <div class="raised-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">⚡</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Lightning Delivery</h3>
+                <p style="color: #718096; line-height: 1.6;">Get your daily dose of vitality delivered to your doorstep in minutes, ensuring peak freshness every time.</p>
+            </div>
+
+        </div>
+    </section>
+    <!-- How It Works Section -->
+    <section id="how-it-works" style="padding: 60px 5%; position: relative; z-index: 1; background: rgba(255, 255, 255, 0.4);">
+        <h2 style="text-align: center; color: #2d3748; margin-bottom: 50px; font-size: 2.5rem;">How It Works</h2>
+        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 40px;">
+            
+            <div style="text-align: center; max-width: 250px;">
+                <div class="inset-panel" style="width: 80px; height: 80px; line-height: 80px; border-radius: 50%; margin: 0 auto 20px; font-size: 1.5rem; font-weight: bold; color: #f6ad55;">01</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Select Your Blends</h3>
+                <p style="color: #718096;">Browse our shop and pick your favorite cold-pressed juices.</p>
+            </div>
+
+            <div style="text-align: center; max-width: 250px;">
+                <div class="inset-panel" style="width: 80px; height: 80px; line-height: 80px; border-radius: 50%; margin: 0 auto 20px; font-size: 1.5rem; font-weight: bold; color: #f6ad55;">02</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">We Press Fresh</h3>
+                <p style="color: #718096;">We start pressing your order only after you confirm it, ensuring 100% freshness.</p>
+            </div>
+
+            <div style="text-align: center; max-width: 250px;">
+                <div class="inset-panel" style="width: 80px; height: 80px; line-height: 80px; border-radius: 50%; margin: 0 auto 20px; font-size: 1.5rem; font-weight: bold; color: #f6ad55;">03</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Doorstep Delivery</h3>
+                <p style="color: #718096;">Our team delivers your order in under 12 hours, keeping the nutrients intact.</p>
+            </div>
+
+        </div>
+    </section>
+    <!-- Serving Kashmir Section -->
+    <section id="coverage" style="padding: 80px 5%; position: relative; z-index: 1; text-align: center;">
+        <div class="raised-panel" style="padding: 40px; border-radius: 20px; max-width: 800px; margin: 0 auto; background: rgba(255, 255, 255, 0.9);">
+            
+            <h2 style="font-size: 2.5rem; color: #2d3748; margin-bottom: 20px;">
+                Proudly Serving <strong>All of Kashmir</strong>
+            </h2>
+            <div style="height: 4px; width: 60px; background: #f6ad55; margin: 0 auto 30px; border-radius: 2px;"></div>
+            
+            <p style="color: #4a5568; margin-bottom: 40px; font-size: 1.1rem;">
+                Expanding our reach to ensure every household receives the freshest, cold-pressed vitality.
+            </p>
+
+            <!-- Mini Graph Placeholder -->
+            <div class="inset-panel" style="width: 100%; height: 200px; border-radius: 15px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px;">
+                <!-- Simple bar representation -->
+                <div style="width: 15%; background: #f6ad55; height: 40%; border-radius: 5px;"></div>
+                <div style="width: 15%; background: #f6ad55; height: 60%; border-radius: 5px;"></div>
+                <div style="width: 15%; background: #f6ad55; height: 85%; border-radius: 5px;"></div>
+                <div style="width: 15%; background: #2e7d32; height: 100%; border-radius: 5px;"></div>
+            </div>
+            <p style="margin-top: 15px; font-weight: bold; color: #2e7d32;">Growth Trend: Expanding Coverage</p>
+        </div>
+    </section>
+    <!-- Built For Everyone Section -->
+    <section id="built-for" style="padding: 80px 5%; position: relative; z-index: 1;">
+        <h2 style="text-align: center; color: #2d3748; margin-bottom: 50px; font-size: 2.5rem;">Built for Everyone</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+            
+            <!-- Customer Card -->
+            <div class="raised-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">👤</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Customers</h3>
+                <p style="color: #718096; line-height: 1.6;">Enjoy seamless ordering and fast delivery of your favorite fresh juices.</p>
+            </div>
+
+            <!-- Shop Owner Card -->
+            <div class="raised-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">🏪</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Merchants</h3>
+                <p style="color: #718096; line-height: 1.6;">Manage your inventory, track sales, and grow your brand with our admin dashboard.</p>
+            </div>
+
+            <!-- Delivery Partner Card -->
+            <div class="raised-panel" style="padding: 30px; border-radius: 20px; text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">🛵</div>
+                <h3 style="margin-bottom: 10px; color: #4a5568;">Delivery Partners</h3>
+                <p style="color: #718096; line-height: 1.6;">Reliable tools to track deliveries, optimize your routes, and earn with ease.</p>
+            </div>
+
+        </div>
+    </section>
+    <!-- Sign Up & Save Section -->
+    <section id="sign-up-save" style="padding: 80px 5%; position: relative; z-index: 1; text-align: center;">
+        <div class="raised-panel" style="padding: 50px; border-radius: 30px; max-width: 900px; margin: 0 auto; background: linear-gradient(145deg, #ffffff, #e6e9ef);">
+            <h2 style="font-size: 2.5rem; color: #2d3748; margin-bottom: 20px;">
+                Ready to Taste the Freshness?
+            </h2>
+            <p style="font-size: 1.2rem; color: #4a5568; margin-bottom: 30px;">
+                Subscribe to our newsletter today and <strong>save 30% on your first order!</strong>
+            </p>
+            
+            <form id="newsletter-form" class="inset-panel" style="display: inline-flex; padding: 5px; border-radius: 50px; width: 100%; max-width: 500px; background: white;" onsubmit="return false;">
+                <input type="email" id="sub-email" placeholder="Enter your email address" style="flex: 1; border: none; padding: 15px 20px; border-radius: 50px; outline: none; background: transparent;">
+                <button type="submit" class="raised-button" style="padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer;">Get 30% Off</button>
+            </form>
+        </div>
+    </section>
+<!-- Professional Contact Section -->
+    <section id="contact" style="padding: 60px 5%; position: relative; z-index: 1;">
+        <div class="raised-panel" style="padding: 40px; border-radius: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; text-align: center;">
+            
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #2d3748; margin-bottom: 10px;">Visit Us</h3>
+                <p style="color: #718096;">123 Pampur, Pulwama<br>Kashmir, 192121</p>
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #2d3748; margin-bottom: 10px;">Email Support</h3>
+                <p style="color: #718096;">elarachainspvtltd@gmail.com</p>
+            </div>
+
+            <div style="flex: 1; min-width: 200px;">
+                <h3 style="color: #2d3748; margin-bottom: 10px;">Call Us</h3>
+                <p style="color: #718096;">+91-8899002903<br>Mon-Sun, 9am - 9pm</p>
+            </div>
+
+        </div>
+    </section>
+    <!-- Partnership Links Section -->
+    <section id="partners-portal" style="padding: 40px 5%; position: relative; z-index: 1; text-align: center;">
+        <div class="raised-panel" style="padding: 20px; border-radius: 15px; max-width: 600px; margin: 0 auto; display: flex; justify-content: center; gap: 40px; background: rgba(255, 255, 255, 0.8);">
+            
+            <a href="delivery-partners.html" style="text-decoration: none; color: #2d3748; font-weight: bold; font-size: 1.1rem;">
+                🛵 Delivery Partners
+            </a>
+            
+            <div style="width: 2px; background: #cbd5e0;"></div>
+            
+            <a href="merchants.html" style="text-decoration: none; color: #2d3748; font-weight: bold; font-size: 1.1rem;">
+    🏪 Merchants
+</a>
+
+        </div>
+    </section>
+    <script>
+        // Newsletter Subscription
+        document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('sub-email').value;
+
+            if (!email) return alert("Please enter a valid email.");
+
+            try {
+                const response = await fetch('http://localhost:3000/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                if (response.ok) {
+                    alert("Subscribed successfully! Check your email for the discount code.");
+                    document.getElementById('sub-email').value = '';
+                } else {
+                    const error = await response.json();
+                    alert("Subscription failed: " + error.message);
+                }
+            } catch (err) {
+                console.error("Connection Error:", err);
+                alert("Could not connect to server. Ensure port 3000 is open and node server.js is running.");
+            }
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

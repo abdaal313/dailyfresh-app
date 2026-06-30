@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner Dashboard | DailyFresh</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .dashboard-container { max-width: 900px; margin: auto; }
+        .card { background: white; padding: 25px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn { border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: bold; background: #2e7d32; color: white; width: 100%; margin-top: 15px; }
+        .order-meta { font-size: 0.95rem; color: #4a5568; margin-bottom: 8px; }
+        .map-container { height: 200px; width: 100%; border-radius: 12px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h1 style="text-align: center; margin-bottom: 30px; color: #2d3748;">Delivery Partner Portal</h1>
+    <div id="order-list"><p style="text-align:center;">Loading orders...</p></div>
+</div>
+
+<script>
+   // 1. Dynamic API Base
+const API_BASE = window.location.hostname === '127.0.0.1' 
+    ? 'http://127.0.0.1:3000/api' 
+    : 'http://localhost:3000/api';
+
+// 🌟 2. THE PERMANENT FIX: Memory Fallback to bypass Tracking Prevention
+let memoryPassword = null;
+
+function savePassword(pwd) {
+    memoryPassword = pwd; // Save safely in script memory
+    try { 
+        localStorage.setItem('deliveryPassword', pwd); 
+    } catch(e) {
+        console.warn("Browser blocked localStorage, using memory instead.");
+    }
+}
+
+function getPassword() {
+    try { 
+        return localStorage.getItem('deliveryPassword') || memoryPassword; 
+    } catch(e) { 
+        return memoryPassword; 
+    }
+}
+
+// 3. Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    let password = getPassword();
+    
+    if (!password) {
+        password = prompt("Enter Delivery Portal Password:");
+        if (password !== "delivery123") {
+            alert("❌ Access Denied!");
+            window.location.href = "index.html";
+            return;
+        }
+        savePassword(password);
+    }
+    
+    loadDeliveryData();
+});
+
+// 4. Fetch Data
+async function loadDeliveryData() {
+    const password = getPassword();
+    let token = '';
+    try { token = localStorage.getItem('adminToken') || ''; } catch(e) {}
+    
+    const container = document.getElementById('order-list');
+
+    try {
+        const res = await fetch(`${API_BASE}/delivery/orders`, {
+            method: 'GET',
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'x-portal-password': password || '' 
+            }
+        });
+
+        if (!res.ok) throw new Error("Unauthorized");
+        
+        const orders = await res.json();
+        
+        if (Array.isArray(orders) && orders.length > 0) {
+            renderOrders(orders);
+        } else {
+            if (container) container.innerHTML = "<p style='text-align:center;'>No orders available.</p>";
+        }
+    } catch (err) {
+        console.error("Fetch failed:", err);
+        if (container) container.innerHTML = '<p style="text-align:center; color:red;">Failed to load. Check password or login status.</p>';
+    }
+}
+
+// 5. Render Orders & Maps
+function renderOrders(orders) {
+    const container = document.getElementById('order-list');
+    if (!container) return;
+    
+    container.innerHTML = ''; 
+
+    orders.forEach(order => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <h3>📦 Order #${order.orderId}</h3>
+            <div class="order-meta"><strong>Receiver:</strong> ${order.customerName}</div>
+            <div class="order-meta"><strong>Address:</strong> ${order.address}</div>
+            <div class="order-meta"><strong>Total Price:</strong> ₹${order.total}</div>
+            <div id="map-${order.orderId}" class="map-container" style="height: 200px; margin: 15px 0; border-radius: 8px;"></div>
+            <button class="btn" onclick="markDelivered(${order.orderId})" style="padding: 10px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">Mark as Delivered</button>
+        `;
+        container.appendChild(card);
+
+        setTimeout(() => {
+            const lat = order.latitude || 33.9972; 
+            const lng = order.longitude || 74.9547;
+            
+            if (typeof L !== 'undefined') {
+                const map = L.map(`map-${order.orderId}`).setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                L.marker([lat, lng]).addTo(map).bindPopup('Delivery Location');
+            } else {
+                console.warn("Leaflet map library not found.");
+            }
+        }, 100);
+    });
+}
+
+// 6. Mark Delivered
+async function markDelivered(orderId) {
+    const password = getPassword();
+    let token = '';
+    try { token = localStorage.getItem('adminToken') || ''; } catch(e) {}
+    
+    try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : '',
+                'x-portal-password': password || ''
+            },
+            body: JSON.stringify({ status: 'Delivered' })
+        });
+
+        if (response.ok) {
+            alert("Order marked as delivered!");
+            loadDeliveryData(); 
+        } else {
+            alert("Failed to update status.");
+        }
+    } catch (err) {
+        console.error("Update failed:", err);
+        alert("Network error. Check console.");
+    }
+}
+</script>
+</body>
+</html>

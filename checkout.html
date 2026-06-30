@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DailyFresh | Secure Checkout</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
+    <style>
+        .product-item { display: flex; gap: 15px; padding: 15px; border-bottom: 1px solid #eee; align-items: center; }
+        .product-item:last-child { border-bottom: none; }
+        .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: #f5f5f5; }
+        .product-details { flex: 1; }
+        .product-details h4 { margin: 0 0 5px 0; font-size: 0.95rem; }
+        .product-details p { margin: 0; font-size: 0.85rem; color: #666; }
+        .product-price { font-weight: bold; color: var(--accent); }
+        .payment-options { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .payment-tab { flex: 1; min-width: 150px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; background: white; transition: all 0.3s; }
+        .payment-tab:hover { border-color: var(--accent); }
+        .payment-tab.active { border-color: var(--accent); background: #e8f5e9; font-weight: bold; }
+        .payment-content { display: none; padding: 20px; background: #f9f9f9; border-radius: 8px; margin-top: 15px; }
+        .payment-content.active { display: block; }
+        .card-form { display: grid; gap: 12px; }
+        .card-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #333; }
+        .form-group input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; }
+        .qr-code-container { text-align: center; padding: 20px; }
+        .qr-code-container img { width: 200px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .address-lookup { margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 6px; font-size: 0.85rem; }
+        .map-search { margin-bottom: 10px; display: flex; gap: 8px; }
+        .map-search input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; }
+        .map-search button { padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .error-message { color: #d32f2f; font-size: 0.85rem; padding: 10px; background: #ffebee; border-radius: 6px; margin-top: 10px; display: none; }
+        .error-message.show { display: block; }
+        .success-message { color: #2e7d32; font-size: 0.85rem; padding: 10px; background: #e8f5e9; border-radius: 6px; margin-top: 10px; display: none; }
+        .success-message.show { display: block; }
+    </style>
+</head>
+<body>
+
+    <nav class="raised-panel">
+        <div class="logo">Dairy<span>Fresh</span></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="shop.html">Shop</a>
+        </div>
+        <button class="cart-btn raised-button" onclick="window.location.href='shop.html#cart-section';">
+            Cart (<span id="cart-count">0</span>)
+        </button>
+    </nav>
+
+    <section id="checkout-interface" style="padding: 20px;">
+        <div class="checkout-grid" style="display: grid; gap: 20px; grid-template-columns: 1fr 1fr;">
+
+            <div class="checkout-summary raised-panel">
+                <h2 style="margin-bottom: 2rem;">Order Summary</h2>
+                <div id="checkout-cart-items">
+                    <!-- Populated by script.js renderCart() -->
+                </div>
+
+                <div id="storage-warning" style="display: none; background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.85rem;">
+                    <strong>⚠️ Note:</strong> Your browser's tracking protection is enabled. Cart data uses a fallback storage. <a href="#" onclick="document.getElementById('storage-fix').style.display='block'; return false;" style="color: #1976d2; text-decoration: underline;">Need help?</a>
+                </div>
+
+                <div class="total-row inset-panel" style="margin-top: 2rem;">
+                    <h3>Total Amount: </h3>
+                    <h3 style="color: var(--accent);">₹<span id="checkout-total">0.00</span></h3>
+                </div>
+                <div id="cart-error" class="error-message"></div>
+            </div>
+
+            <div class="checkout-payment raised-panel">
+                <h2 style="margin-bottom: 1.5rem;">Delivery Details</h2>
+                <input type="text" id="cust-name" class="inset-input form-input" placeholder="Full Name" style="width:100%; margin-bottom:10px;">
+                <input type="email" id="cust-email" class="inset-input form-input" placeholder="Email Address" style="width:100%; margin-bottom:10px;">
+                <input type="tel" id="cust-phone" class="inset-input form-input" placeholder="Phone Number" style="width:100%; margin-bottom:10px;">
+                <textarea id="cust-address" class="inset-input form-input" placeholder="Delivery Address" style="width:100%; margin-bottom:10px; resize: vertical;"></textarea>
+
+                <div class="card" style="margin-top:20px; padding: 15px;">
+                    <h3>Set Delivery Location</h3>
+                    <p style="font-size: 0.8rem; color: #666;">Search or click on the map to mark your home:</p>
+
+                    <div class="map-search">
+                        <input type="text" id="location-search" placeholder="Search address...">
+                        <button type="button" onclick="searchLocation()">Search</button>
+                    </div>
+
+                    <div id="checkout-map" style="height: 250px; width: 100%; border-radius: 10px; z-index: 0;"></div>
+
+                    <div class="address-lookup" id="address-result" style="display: none;">
+                        <strong>📍 Coordinates:</strong> <span id="coord-display"></span><br>
+                        <strong>Address:</strong> <span id="address-display">Fetching...</span>
+                    </div>
+
+                    <input type="hidden" id="lat" value="">
+                    <input type="hidden" id="lng" value="">
+                </div>
+
+                <div id="storage-fix" style="display: none; background: #e3f2fd; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <h4 style="margin-top: 0; color: #1976d2;">📋 How to Fix "Tracking Prevention" Error:</h4>
+
+                    <div style="margin-bottom: 12px;">
+                        <strong>🦊 Firefox:</strong>
+                        <ol style="margin: 5px 0; padding-left: 20px; font-size: 0.85rem;">
+                            <li>Type <code>about:config</code> in address bar</li>
+                            <li>Search for <code>privacy.trackingprotection.enabled</code></li>
+                            <li>Set it to <code>false</code></li>
+                            <li>Refresh the page</li>
+                        </ol>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <strong>🧭 Safari:</strong>
+                        <ol style="margin: 5px 0; padding-left: 20px; font-size: 0.85rem;">
+                            <li>Go to Preferences → Privacy</li>
+                            <li>Uncheck "Prevent cross-site tracking"</li>
+                            <li>Refresh the page</li>
+                        </ol>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <strong>🔵 Chrome/Edge:</strong>
+                        <ol style="margin: 5px 0; padding-left: 20px; font-size: 0.85rem;">
+                            <li>Go to Settings → Privacy and security</li>
+                            <li>Change "Cookies and other site data" to allow all</li>
+                            <li>Refresh the page</li>
+                        </ol>
+                    </div>
+
+                    <button type="button" onclick="document.getElementById('storage-fix').style.display='none'" style="background: #1976d2; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">✓ Got it, close this</button>
+                </div>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Payment Method</h2>
+
+                <div class="payment-options">
+                    <div class="payment-tab active" onclick="window.switchPayment('upi', event)">
+                        📱 UPI / QR Code
+                    </div>
+                    <div class="payment-tab" onclick="window.switchPayment('debit-card', event)">
+                        💳 Debit / Credit Card
+                    </div>
+                </div>
+
+                <!-- UPI Payment -->
+                <div id="payment-upi" class="payment-content active">
+                    <div class="qr-code-container">
+                        <p style="color: #666; margin-bottom: 15px;">Scan the QR code with any UPI app to pay:</p>
+                        <img src="upi-qr.jpg" alt="UPI QR" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EQR Code Image%3C/text%3E%3C/svg%3E'">
+                        <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+                            <strong>UPI ID:</strong> dailyfresh@upi<br>
+                            Amount: ₹<span id="upi-amount">0.00</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Debit/Credit Card Payment -->
+                <div id="payment-debit-card" class="payment-content">
+                    <div class="card-form">
+                        <div class="form-group">
+                            <label for="card-holder">Cardholder Name</label>
+                            <input type="text" id="card-holder" placeholder="Full Name as on Card">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="card-number">Card Number</label>
+                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric">
+                        </div>
+
+                        <div class="card-row">
+                            <div class="form-group">
+                                <label for="expiry">Expiry Date (MM/YY)</label>
+                                <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" inputmode="numeric">
+                            </div>
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" placeholder="123" maxlength="4" inputmode="numeric">
+                            </div>
+                        </div>
+
+                        <div style="background: #fff3e0; padding: 12px; border-radius: 6px; font-size: 0.85rem; color: #e65100;">
+                            <strong>⚠️ Security Notice:</strong> Never share your card details. We use encrypted connections to protect your information.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="payment-error" class="error-message"></div>
+                <div id="payment-success" class="success-message"></div>
+
+                <button class="raised-button pay-btn" type="button" onclick="window.completeOrder()" style="width: 100%; margin-top: 2rem; padding: 15px; background: #2e7d32; color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: bold; border-radius: 8px;">
+                    Complete Order
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+    <script>
+        let map;
+        let marker;
+        const REVERSE_GEOCODE_API = 'https://nominatim.openstreetmap.org/reverse';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMap();
+            formatCardInputs();
+            checkStorageAccess();
+        });
+
+        function checkStorageAccess() {
+            try {
+                const test = '__storage_test__';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                document.getElementById('storage-warning').style.display = 'none';
+            } catch (e) {
+                document.getElementById('storage-warning').style.display = 'block';
+            }
+        }
+
+        function initializeMap() {
+            if (map) {
+                map.off();
+                map.remove();
+            }
+
+            // Default location: Anantnag, Kashmir
+            const defaultLat = 33.7298;
+            const defaultLng = 75.4613;
+
+            map = L.map('checkout-map').setView([defaultLat, defaultLng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            L.control.zoom({ position: 'topright' }).addTo(map);
+
+            L.Control.geocoder({
+                defaultMarkGeocode: false,
+                position: 'topleft'
+            }).on('markgeocode', function (e) {
+                const latlng = e.geocode.center;
+                placeMarker(latlng.lat, latlng.lng, 15);
+            }).addTo(map);
+
+            map.on('click', function (e) {
+                placeMarker(e.latlng.lat, e.latlng.lng);
+            });
+
+            L.control.scale().addTo(map);
+        }
+
+        function placeMarker(lat, lng, zoom) {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map);
+            if (zoom) map.setView([lat, lng], zoom);
+            document.getElementById('lat').value = lat.toFixed(6);
+            document.getElementById('lng').value = lng.toFixed(6);
+            fetchReverseGeocode(lat, lng);
+        }
+
+        function searchLocation() {
+            const searchTerm = document.getElementById('location-search').value.trim();
+            if (!searchTerm) {
+                alert('Please enter a location to search');
+                return;
+            }
+
+            const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json`;
+
+            fetch(nominatimUrl)
+                .then(res => res.json())
+                .then(results => {
+                    if (results.length > 0) {
+                        const result = results[0];
+                        placeMarker(parseFloat(result.lat), parseFloat(result.lon), 15);
+                    } else {
+                        alert('Location not found. Please try a different search term.');
+                    }
+                })
+                .catch(err => console.error('Search error:', err));
+        }
+
+        function fetchReverseGeocode(lat, lng) {
+            const url = `${REVERSE_GEOCODE_API}?format=json&lat=${lat}&lon=${lng}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('coord-display').innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    document.getElementById('address-display').innerText = data.address?.country_code ?
+                        `${data.address.road || ''} ${data.address.city || ''} ${data.address.postcode || ''}`.trim() :
+                        'Address not found';
+                    document.getElementById('address-result').style.display = 'block';
+                })
+                .catch(err => {
+                    console.error('Geocoding error:', err);
+                    document.getElementById('address-result').style.display = 'none';
+                });
+        }
+
+        function formatCardInputs() {
+            const cardInput = document.getElementById('card-number');
+            const expiryInput = document.getElementById('expiry');
+            const cvvInput = document.getElementById('cvv');
+
+            cardInput?.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\s/g, '');
+                e.target.value = value.match(/.{1,4}/g)?.join(' ') || value;
+            });
+
+            expiryInput?.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                e.target.value = value;
+            });
+
+            cvvInput?.addEventListener('input', function (e) {
+                e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+            });
+        }
+    </script>
+</body>
+</html>

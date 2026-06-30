@@ -1,0 +1,580 @@
+/* =========================================
+   PUREPRESS - SKEUOMORPHIC UI (FULL CSS)
+   ========================================= */
+
+/* Core Variables for Soft UI / Skeuomorphism */
+:root {
+    --bg-color: #e0e5ec; /* Milky gray base */
+    --text-main: #2d3748;
+    --text-light: #718096;
+    --accent: #ff7f50; /* Fresh coral/orange */
+    
+    /* The 3D Shadows */
+    --shadow-raised: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+    --shadow-inset: inset 6px 6px 10px 0 rgba(163,177,198, 0.7), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    overflow-x: hidden; /* Prevents horizontal scroll */
+}
+
+/* --- THE SKEUOMORPHIC CLASSES --- */
+.raised-panel {
+    background-color: var(--bg-color);
+    border-radius: 20px;
+    box-shadow: var(--shadow-raised);
+}
+
+.inset-panel {
+    background-color: var(--bg-color);
+    border-radius: 20px;
+    box-shadow: var(--shadow-inset);
+}
+
+.raised-button {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: var(--shadow-raised);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+/* The physical "press" effect */
+.raised-button:active {
+    box-shadow: var(--shadow-inset);
+    color: var(--accent);
+}
+
+/* --- LAYOUT & SECTIONS --- */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    margin: 2rem;
+    border-radius: 50px; /* Pill shape nav */
+}
+
+.logo {
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+}
+.logo span { color: var(--accent); }
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-main);
+    margin: 0 1rem;
+    font-weight: 600;
+}
+
+#hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.hero-content {
+    max-width: 50%;
+}
+
+h1 {
+    font-size: 4rem;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+    text-shadow: 2px 2px 4px rgba(163,177,198,0.5); /* Subtle embossed text effect */
+}
+
+/* --- HERO IMAGE WELL & BLEND EFFECT --- */
+.image-well {
+    width: 400px;
+    height: 400px;
+    background-color: var(--bg-color); /* Matches page to complete illusion */
+    border-radius: 50%; /* Perfect circle */
+    box-shadow: var(--shadow-inset); /* 3D pressed-in look */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.hero-image {
+    width: 70%; 
+    height: auto;
+    /* THE MAGIC TRICK: Deletes the white background of your image instantly */
+    mix-blend-mode: multiply; 
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+#features, #shop {
+    padding: 5rem 10%;
+}
+
+.feature-grid, .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 3rem;
+}
+
+.feature-card, .product-card {
+    padding: 2.5rem;
+    text-align: center;
+}
+/* Ensure the container is a perfect circle */
+.product-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative; /* Important for alignment */
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image img {
+    width: 220%;
+    height: 220%;
+    object-fit: cover;
+    object-position: center; /* This forces the image to center itself */
+    display: block;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+/* --- CART SECTION --- */
+#cart-section {
+    margin: 5rem 10%;
+    padding: 4rem;
+}
+
+.cart-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+}
+
+#cart-items {
+    list-style: none;
+    padding: 2rem;
+    min-height: 200px;
+}
+
+#cart-items li {
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--bg-color);
+    box-shadow: 0 2px 2px -2px rgba(163,177,198,0.6);
+    display: flex;
+    justify-content: space-between;
+}
+
+.checkout-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.checkout-btn {
+    background-color: var(--accent);
+    color: white;
+    font-size: 1.2rem;
+    padding: 1rem;
+}
+/* --- CART ITEM & REMOVE BUTTON --- */
+#cart-items li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Keeps the text and button perfectly aligned */
+}
+
+.cart-item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-item-info span {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* The Skeuomorphic Remove Button */
+.remove-btn {
+    padding: 0;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    color: #e53e3e; /* A muted, physical red */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.remove-btn:hover {
+    color: #c53030;
+}
+/* --- FOOTER --- */
+footer {
+    margin: 2rem;
+    padding: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inset-input {
+    background: transparent;
+    border: none;
+    padding: 1rem;
+    outline: none;
+    color: var(--text-main);
+    width: 250px;
+}
+/* --- CHECKOUT PAGE STYLES --- */
+#checkout-interface {
+    padding: 3rem 10%;
+    min-height: 80vh;
+}
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.checkout-summary, .checkout-payment {
+    padding: 3rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+}
+
+/* Skeuomorphic Payment Toggles */
+.payment-toggles {
+    display: flex;
+    border-radius: 50px;
+    padding: 5px;
+    margin-bottom: 2rem;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    border-radius: 50px;
+    font-weight: bold;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.active-toggle {
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-raised);
+    color: var(--accent);
+}
+
+/* Form Inputs */
+.input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.form-input {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    outline: none;
+    color: var(--text-main);
+    font-weight: bold;
+}
+
+.grid-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+/* Force buttons to be clickable */
+.pay-btn {
+    position: relative;
+    z-index: 1000;
+    pointer-events: auto;
+    cursor: pointer;
+}
+/* QR Code Well */
+#qr-well {
+    width: 250px;
+    height: 250px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    padding: 20px;
+    background-color: white; /* Needs white background for scanner to read it */
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS (PHONES & TABLETS)
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. Navigation */
+    nav {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        margin: 1rem;
+        border-radius: 20px;
+    }
+    
+    .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .nav-links a { 
+        margin: 0; 
+    }
+
+    /* 2. Hero Section */
+    #hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 4rem 1.5rem;
+        gap: 3rem;
+    }
+    
+    .hero-content {
+        max-width: 100%;
+    }
+    
+    h1 { 
+        font-size: 2.5rem; 
+    }
+    
+    /* Shrinks the circular well nicely on phones */
+    .image-well {
+        width: 300px;
+        height: 300px;
+    }
+
+    /* 3. Sections & Padding Fixes */
+    #features, #shop {
+        padding: 4rem 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+
+    /* 4. Cart Section */
+    #cart-section {
+        margin: 2rem 1rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .cart-container {
+        grid-template-columns: 1fr; 
+        gap: 2rem;
+    }
+
+    /* 5. Footer */
+    footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+    
+    .newsletter {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .inset-input {
+        width: 100%;
+    }
+    /* Process Section Mobile Fixes */
+    .process-timeline {
+        grid-template-columns: 1fr; /* Forces steps to stack vertically */
+        gap: 2rem;
+    }
+
+    .process-step {
+        padding: 2rem 1.5rem;
+    }
+    
+    .step-number {
+        width: 60px; /* Slightly smaller number dials for phones */
+        height: 60px;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+}
+/* --- THE PROCESS TIMELINE --- */
+.process-section {
+    padding: 5rem 10%;
+}
+
+.process-timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 3rem;
+    position: relative;
+}
+
+.process-step {
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.process-step:hover {
+    transform: translateY(-5px); /* Subtle lift on hover */
+}
+
+/* The Pressed-in Number Dial */
+.step-number {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--accent);
+    background-color: var(--bg-color);
+}
+
+.process-step h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--text-main);
+}
+
+.process-step p {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+/* Shop Benefits Text */
+.benefit-text {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+textarea.form-input {
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+}
+/* --- MOBILE RESPONSIVE CHECKOUT --- */
+@media (max-width: 768px) {
+    #checkout-interface {
+        padding: 1rem;
+    }
+
+    .checkout-grid {
+        grid-template-columns: 1fr; /* Stack columns on mobile */
+        gap: 1.5rem;
+    }
+
+    .checkout-summary, .checkout-payment {
+        padding: 1.5rem; /* Reduce internal padding for more space */
+    }
+
+    /* Make buttons larger and more touch-friendly */
+    .pay-btn {
+        padding: 18px; /* Larger target area for thumbs */
+        font-size: 1.2rem;
+    }
+
+    .form-input {
+        padding: 18px; /* Larger touch targets for inputs */
+        font-size: 16px; /* Prevents auto-zoom on iOS */
+    }
+}
+/* Reset margins to ensure full-page spread */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    overflow-x: hidden; /* Prevents horizontal scroll */
+}
+
+/* Make your hero section full height */
+#hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+}

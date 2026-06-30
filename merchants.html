@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchants Portal | DailyFresh</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; padding: 40px 20px; }
+        h1 { text-align: center; color: #2d3748; margin-bottom: 40px; }
+        
+        .shop-container { max-width: 1000px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        .shop-card { 
+            background: white; border-radius: 16px; padding: 20px; display: flex; 
+            gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); align-items: flex-start;
+        }
+
+        .shop-img { width: 300px; height: 200px; object-fit: cover; border-radius: 12px; }
+
+        .shop-info { flex: 1; display: flex; justify-content: space-between; }
+        .left-col { display: flex; flex-direction: column; gap: 10px; }
+        .right-col { display: flex; flex-direction: column; gap: 10px; text-align: right; }
+
+        .shop-name { font-size: 1.8rem; font-weight: 800; color: #1a202c; margin: 0; }
+        .badge { background: #e6fffa; color: #2c7a7b; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-block; }
+        
+        button { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #219150; }
+    </style>
+</head>
+<body>
+
+    <h1>Explore Our Partner Shops</h1>
+    <div id="shop-list" class="shop-container">
+        <p style="text-align:center;">Loading professional storefronts...</p>
+    </div>
+
+    <script>
+        async function loadShops() {
+            try {
+                const res = await fetch('http://localhost:3000/api/businesses');
+                const shops = await res.json();
+                const list = document.getElementById('shop-list');
+                list.innerHTML = '';
+                
+                shops.forEach(s => {
+                    list.innerHTML += `
+                        <div class="shop-card">
+                            <img class="shop-img" src="http://localhost:3000/uploads/${s.image}" onerror="this.src='default.jpg'">
+                            <div class="shop-info">
+                                <div class="left-col">
+                                    <h3 class="shop-name">${s.shop_name}</h3>
+                                    <p><strong>Owner:</strong> ${s.owner_name}</p>
+                                    <p><span class="badge">${s.product_type}</span></p>
+                                </div>
+                                <div class="right-col">
+                                    <p><strong>Address:</strong><br>${s.address}</p>
+                                    <p><em>Premium Partner</em></p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                document.getElementById('shop-list').innerHTML = '<p>Error loading shops.</p>';
+            }
+        }
+        loadShops();
+    </script>
+</body>
+</html>

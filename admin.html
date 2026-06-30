@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DairyFresh - Admin Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f6;
+            padding: 20px;
+            color: #333;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: #2d3748;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #667eea;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .stat-card p {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #edf2f7;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background: #27ae60;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.delete-btn {
+            background: #e74c3c;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        button.delete-btn:hover {
+            background: #c0392b;
+        }
+
+        button.update-btn {
+            background: #3498db;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        button.update-btn:hover {
+            background: #2980b9;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-confirmed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-shipped {
+            background: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .status-delivered {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+        }
+
+        canvas {
+            max-height: 100%;
+            max-width: 100%;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #7f1d1d;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+
+        .section-title {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-links">
+            <a href="index.html">🏠 Home</a>
+            <a href="shop.html">🛒 Shop</a>
+            a href="delivery-partners.html" style="text-decoration: none; color: #2d3748; font-weight: bold; font-size: 1.1rem;">
+                🛵 Delivery Partners
+            </a>
+             <a href="merchants.html" style="text-decoration: none; color: #2d3748; font-weight: bold; font-size: 1.1rem;">
+    🏪 Merchants
+</a>
+        </div>
+        <button class="logout-btn" id="logout-btn">🚪 Logout</button>
+    </div>
+
+    <h1>🎯 Admin Dashboard</h1>
+
+    <!-- Statistics -->
+    <div class="stat-grid">
+        <div class="card stat-card">
+            <h3>📦 Total Orders</h3>
+            <p id="stat-orders">0</p>
+        </div>
+        <div class="card stat-card">
+            <h3>💰 Total Revenue</h3>
+            <p id="stat-revenue">₹0</p>
+        </div>
+        <div class="card stat-card">
+            <h3>📧 Subscribers</h3>
+            <p id="stat-subs">0</p>
+        </div>
+        <div class="card stat-card">
+            <h3>🍽️ Menu Items</h3>
+            <p id="stat-products">0</p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-container">
+        <div class="card">
+            <h3>📊 Revenue Trend</h3>
+            <div class="chart-wrapper">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h3>📈 Order Status Distribution</h3>
+            <div class="chart-wrapper">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PRODUCTS SECTION ===== -->
+    <div class="section-title">
+        <h3>➕ Add New Menu Item</h3>
+    </div>
+    <div class="card">
+        <div class="success-message" id="product-success">✅ Product added successfully!</div>
+        <div class="error-message" id="product-error"></div>
+        <div class="form-group">
+            <div class="form-row">
+                <div>
+                    <input type="text" id="p-name" placeholder="Product Name" required>
+                </div>
+                <div>
+                    <input type="number" id="p-price" placeholder="Price (₹)" step="0.01" required>
+                </div>
+                <div>
+                    <input type="file" id="p-image" accept="image/*">
+                </div>
+            </div>
+            <button onclick="window.addProduct()">💾 Add Product</button>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="card">
+        <h3>🍽️ Menu Items</h3>
+        <table id="menu-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Image</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="no-data">Loading menu items...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== ORDERS SECTION ===== -->
+    <div class="section-title">
+        <h3>📋 Orders Management</h3>
+    </div>
+    <div class="card">
+        <table id="orders-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="6" class="no-data">Loading orders...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== EMPLOYEES SECTION ===== -->
+    <div class="section-title">
+        <h3>👥 Employee Management</h3>
+    </div>
+    <div class="card">
+        <div class="success-message" id="employee-success">✅ Employee added successfully!</div>
+        <div class="error-message" id="employee-error"></div>
+        <div class="form-group">
+            <div class="form-row">
+                <div>
+                    <input type="text" id="e-name" placeholder="Employee Name" required>
+                </div>
+                <div>
+                    <input type="text" id="e-role" placeholder="Employee Role" required>
+                </div>
+                <div>
+                    <input type="email" id="e-email" placeholder="Email (Optional)">
+                </div>
+                <div>
+                    <input type="number" id="e-salary" placeholder="Salary (Optional)" step="0.01">
+                </div>
+            </div>
+            <button onclick="window.addEmployee()">➕ Add Employee</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <table id="employees-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="no-data">Loading employees...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== SUBSCRIBERS SECTION ===== -->
+    <div class="section-title">
+        <h3>📧 Newsletter Subscribers</h3>
+    </div>
+    <div class="card">
+        <table id="subscribers-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Subscribed Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2" class="no-data">Loading subscribers...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Include admin.js for authentication and API calls -->
+    <script>
+        // ========== TOKEN MANAGEMENT CLASS ==========
+  class AdminAuth {
+    static setToken(token) {
+        localStorage.setItem('adminToken', token);
+    }
+
+    static getToken() {
+        return localStorage.getItem('adminToken');
+    }
+
+    static hasToken() {
+        return !!this.getToken();
+    }
+
+    // Simplification: Don't rely on local storage expiry calculation for now
+    static isLoggedIn() {
+        return this.hasToken(); 
+    }
+
+    static clearToken() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('tokenExpiry');
+    }
+
+    static getAuthHeader() {
+        const token = this.getToken();
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+}
+
+        // ========== API HELPER ==========
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            try {
+                if (!AdminAuth.isLoggedIn()) {
+                    console.warn('Token expired, redirecting to login');
+                    window.location.href = 'admin.html';
+                    return null;
+                }
+
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...AdminAuth.getAuthHeader()
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(`http://localhost:3000${endpoint}`, options);
+
+                if (response.status === 401) {
+                    console.error('Unauthorized - token invalid');
+                    AdminAuth.clearToken();
+                    window.location.href = 'admin.html';
+                    return null;
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    console.error(`API Error: ${data.error || data.message}`);
+                    return null;
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Call Error:', error);
+                return null;
+            }
+        }
+
+        // ========== PAGE INITIALIZATION ==========
+   // Replace your existing authentication logic with this:
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Explicitly check for adminToken
+    const token = localStorage.getItem('adminToken'); 
+    
+    if (!token) {
+        console.warn('❌ No adminToken found, redirecting...');
+        window.location.href = 'login.html'; // Ensure this matches your login filename
+        return;
+    }
+
+    console.log('✅ User authenticated with adminToken');
+    loadAllData(); // Now it will actually run!
+});
+    // 3. Logout button listener
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            AdminAuth.clearToken();
+            window.location.href = 'admin.html';
+        }
+    });
+
+    // 4. Refresh interval
+    setInterval(() => {
+        if (AdminAuth.isLoggedIn()) {
+            loadAllData();
+        }
+    }, 30000);
+
+
+        // ========== LOAD ALL DATA ==========
+        async function loadAllData() {
+            console.log('📊 Loading admin data...');
+
+            const data = await apiCall('/api/admin/data', 'GET');
+            if (!data) {
+                console.error('Failed to load data');
+                return;
+            }
+
+            console.log('Data loaded:', data);
+
+            // Update statistics
+            const totalRevenue = (data.orders || []).reduce((sum, o) => sum + parseFloat(o.total || 0), 0);
+            document.getElementById('stat-orders').textContent = (data.orders || []).length;
+            document.getElementById('stat-revenue').textContent = '₹' + totalRevenue.toFixed(2);
+            document.getElementById('stat-subs').textContent = (data.subs || []).length;
+            document.getElementById('stat-products').textContent = (data.menu || []).length;
+
+            // Render tables
+            renderMenuTable(data.menu || []);
+            renderOrdersTable(data.orders || []);
+            renderEmployeesTable(data.employees || []);
+            renderSubscribersTable(data.subs || []);
+
+            // Initialize charts
+            initCharts(data.orders || []);
+        }
+
+        // ========== RENDER FUNCTIONS ==========
+        function renderMenuTable(menu) {
+            const tbody = document.querySelector('#menu-table tbody');
+            if (!menu || menu.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No menu items yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = menu.map(item => `
+                <tr>
+                    <td>${escapeHtml(item.name)}</td>
+                    <td>₹${parseFloat(item.price).toFixed(2)}</td>
+                    <td>${item.image ? '📁 ' + item.image : 'No image'}</td>
+                    <td>
+                        <button class="delete-btn" onclick="window.deleteProduct(${item.id})">🗑️ Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderOrdersTable(orders) {
+            const tbody = document.querySelector('#orders-table tbody');
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No orders yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>#${order.id}</td>
+                    <td>${escapeHtml(order.customer_name)}</td>
+                    <td>${order.phone}</td>
+                    <td>₹${parseFloat(order.total).toFixed(2)}</td>
+                    <td><span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span></td>
+                    <td>
+                        ${order.status === 'Pending' ? `<button class="update-btn" onclick="window.confirmOrder(${order.id})">✓ Confirm</button>` : '✅'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderEmployeesTable(employees) {
+            const tbody = document.querySelector('#employees-table tbody');
+            if (!employees || employees.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No employees yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = employees.map(emp => `
+                <tr>
+                    <td>${escapeHtml(emp.name)}</td>
+                    <td>${escapeHtml(emp.role)}</td>
+                    <td>${emp.email || 'N/A'}</td>
+                    <td>
+                        <button class="delete-btn" onclick="window.deleteEmployee(${emp.id})">🗑️ Remove</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSubscribersTable(subs) {
+            const tbody = document.querySelector('#subscribers-table tbody');
+            if (!subs || subs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="no-data">No subscribers yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = subs.map(sub => `
+                <tr>
+                    <td>${escapeHtml(sub.email)}</td>
+                    <td>${new Date(sub.subscribed_date).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ========== CRUD OPERATIONS ==========
+        window.addProduct = async function() {
+            const name = document.getElementById('p-name').value.trim();
+            const price = document.getElementById('p-price').value.trim();
+            const imageFile = document.getElementById('p-image').files[0];
+
+            if (!name || !price) {
+                showError('product-error', 'Please fill in all fields');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('price', price);
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
+
+                const token = AdminAuth.getToken();
+                const response = await fetch('http://localhost:3000/api/admin/add-product', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('product-success', 'Product added successfully!');
+                    document.getElementById('p-name').value = '';
+                    document.getElementById('p-price').value = '';
+                    document.getElementById('p-image').value = '';
+                    loadAllData();
+                } else {
+                    showError('product-error', data.message || 'Failed to add product');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('product-error', 'Server error: ' + error.message);
+            }
+        };
+
+        window.deleteProduct = async function(productId) {
+            if (!confirm('Delete this product?')) return;
+
+            const data = await apiCall(`/api/admin/delete-product/${productId}`, 'DELETE');
+            if (data) {
+                loadAllData();
+            }
+        };
+
+        window.addEmployee = async function() {
+            const name = document.getElementById('e-name').value.trim();
+            const role = document.getElementById('e-role').value.trim();
+            const email = document.getElementById('e-email').value.trim();
+            const salary = document.getElementById('e-salary').value.trim();
+
+            if (!name || !role) {
+                showError('employee-error', 'Name and role are required');
+                return;
+            }
+
+            try {
+                const data = await apiCall('/api/admin/add-employee', 'POST', {
+                    name,
+                    role,
+                    email: email || null,
+                    salary: salary ? parseFloat(salary) : 0
+                });
+
+                if (data) {
+                    showSuccess('employee-success', 'Employee added successfully!');
+                    document.getElementById('e-name').value = '';
+                    document.getElementById('e-role').value = '';
+                    document.getElementById('e-email').value = '';
+                    document.getElementById('e-salary').value = '';
+                    loadAllData();
+                }
+            } catch (error) {
+                showError('employee-error', 'Server error: ' + error.message);
+            }
+        };
+
+        window.deleteEmployee = async function(empId) {
+            if (!confirm('Remove this employee?')) return;
+
+            const data = await apiCall(`/api/admin/delete-employee/${empId}`, 'DELETE');
+            if (data) {
+                loadAllData();
+            }
+        };
+
+        window.confirmOrder = async function(orderId) {
+            if (!confirm('Confirm this order?')) return;
+
+            const data = await apiCall('/api/confirm-order', 'POST', { orderId });
+            if (data) {
+                loadAllData();
+            }
+        };
+
+        // ========== CHARTS ==========
+        let revenueChart = null;
+        let statusChart = null;
+
+        function initCharts(orders) {
+            const revenueCtx = document.getElementById('revenueChart');
+            const statusCtx = document.getElementById('statusChart');
+
+            if (!revenueCtx || !statusCtx) return;
+
+            // Destroy existing charts
+            if (revenueChart) revenueChart.destroy();
+            if (statusChart) statusChart.destroy();
+
+            // Revenue chart
+            revenueChart = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: orders.slice(-10).map(o => `#${o.id}`),
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: orders.slice(-10).map(o => parseFloat(o.total || 0)),
+                        backgroundColor: '#667eea',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Status distribution chart
+            const statusCounts = orders.reduce((acc, o) => {
+                acc[o.status] = (acc[o.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            statusChart = new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#fbbf24', '#34d399', '#60a5fa', '#4ade80', '#f87171']
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // ========== UTILITY FUNCTIONS ==========
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = '✅ ' + message;
+                el.style.display = 'block';
+                setTimeout(() => {
+                    el.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = '❌ ' + message;
+                el.style.display = 'block';
+                setTimeout(() => {
+                    el.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
