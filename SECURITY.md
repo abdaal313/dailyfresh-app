@@ -3,7 +3,7 @@
 ## 🔐 Critical Security Practices
 
 ### 1. Environment Variables
-✅ **ALWAYS** use `.env` file for sensitive data
+✅used `.env` file for sensitive data
 - Database credentials
 - Email passwords
 - Admin password
