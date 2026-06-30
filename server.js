@@ -82,24 +82,23 @@ app.use('/api', globalLimiter);
 
 // ========== DATABASE CONNECTION ======= // Or 'mysql'
 
-const db = mysql.createConnection({
+const mysql = require('mysql2');
+
+// Use a POOL instead of a single connection
+const pool = mysql.createPool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ssl: {
-        rejectUnauthorized: false // This allows the connection to your cloud DB
-    }
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    ssl: { rejectUnauthorized: false }
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('Database connection error:', err);
-    } else {
-        console.log('Successfully connected to the cloud database!');
-    }
-});
+// Export the pool so you can use it throughout your app
+module.exports = pool;
 
 // ========== FILE UPLOAD SETUP ==========
 
