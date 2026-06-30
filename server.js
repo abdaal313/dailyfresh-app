@@ -81,31 +81,24 @@ const checkoutLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // ========== DATABASE CONNECTION ==========
+const mysql = require('mysql2'); // Or 'mysql'
 
 const db = mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'barista_db'
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    ssl: {
+        rejectUnauthorized: false // This allows the connection to your cloud DB
+    }
 });
 
-function connectDb() {
-    db.connect((err) => {
-        if (err) {
-            console.error('❌ Database connection error:', err.message);
-            console.error('   The server will keep running, but any /api/* route that touches MySQL will fail until this is fixed.');
-            console.error('   Double-check DB_HOST / DB_USER / DB_PASSWORD / DB_NAME in your .env file and that MySQL is running.');
-            return;
-        }
-        console.log('✅ MySQL Database Connected');
-    });
-}
-connectDb();
-
-db.on('error', (err) => {
-    console.error('Database error:', err.message);
-    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-        connectDb();
+db.connect((err) => {
+    if (err) {
+        console.error('Database connection error:', err);
+    } else {
+        console.log('Successfully connected to the cloud database!');
     }
 });
 
