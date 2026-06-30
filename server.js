@@ -80,8 +80,7 @@ const checkoutLimiter = rateLimit({
 
 app.use('/api', globalLimiter);
 
-// ========== DATABASE CONNECTION ==========
-const mysql = require('mysql2'); // Or 'mysql'
+// ========== DATABASE CONNECTION ======= // Or 'mysql'
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
