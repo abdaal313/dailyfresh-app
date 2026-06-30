@@ -82,8 +82,6 @@ app.use('/api', globalLimiter);
 
 // ========== DATABASE CONNECTION ======= // Or 'mysql'
 
-const mysql = require('mysql2');
-
 // Use a POOL instead of a single connection
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -269,7 +267,7 @@ app.post('/api/admin/login', authLimiter, (req, res) => {
 
 // GET MENU
 app.get('/api/menu', (req, res) => {
-    db.query('SELECT id, name, price, image FROM menu_items ORDER BY id DESC', (err, results) => {
+    pool.query('SELECT id, name, price, image FROM menu_items ORDER BY id DESC', (err, results) => {
         if (err) {
             console.error('Menu fetch error:', err.message);
             return res.status(500).json({ error: 'Failed to fetch menu. Is MySQL running and the menu_items table created?' });
@@ -286,7 +284,7 @@ app.post('/api/subscribe', (req, res) => {
         return res.status(400).json({ message: 'Invalid email address' });
     }
 
-    db.query('SELECT id FROM subscribers WHERE email = ?', [email.toLowerCase()], (err, results) => {
+    pool.query('SELECT id FROM subscribers WHERE email = ?', [email.toLowerCase()], (err, results) => {
         if (err) {
             console.error('Subscribe check error:', err.message);
             return res.status(500).json({ message: 'Database error' });
@@ -296,7 +294,7 @@ app.post('/api/subscribe', (req, res) => {
             return res.status(400).json({ message: 'Already subscribed!' });
         }
 
-        db.query(
+        pool.query(
             'INSERT INTO subscribers (email, subscribed_date) VALUES (?, NOW())',
             [email.toLowerCase()],
             (err) => {
@@ -384,7 +382,7 @@ app.post('/api/checkout', checkoutLimiter, (req, res) => {
         parseFloat(lng)
     ];
 
-    db.query(query, queryValues, (err, result) => {
+    pool.query(query, queryValues, (err, result) => {
         if (err) {
             console.error('Order creation error:', err.message);
             return res.status(500).json({ message: 'Order creation failed' });
@@ -424,7 +422,7 @@ app.get('/api/order/:orderId', (req, res) => {
         return res.status(400).json({ error: 'Invalid order ID' });
     }
 
-    db.query('SELECT * FROM orders WHERE id = ?', [orderId], (err, results) => {
+    pool.query('SELECT * FROM orders WHERE id = ?', [orderId], (err, results) => {
         if (err) {
             console.error('Order fetch error:', err.message);
             return res.status(500).json({ error: 'Database error' });
@@ -445,7 +443,7 @@ app.get('/api/order/:orderId/items', (req, res) => {
         return res.status(400).json({ error: 'Invalid order ID' });
     }
 
-    db.query('SELECT items_json FROM orders WHERE id = ?', [orderId], (err, results) => {
+    pool.query('SELECT items_json FROM orders WHERE id = ?', [orderId], (err, results) => {
         if (err) {
             console.error('Order items error:', err.message);
             return res.status(500).json({ error: 'Database error' });
@@ -467,25 +465,25 @@ app.get('/api/order/:orderId/items', (req, res) => {
 
 // ADMIN DATA (Protected)
 app.get('/api/admin/data', authMiddleware, (req, res) => {
-    db.query('SELECT * FROM orders ORDER BY id DESC LIMIT 100', (err1, orders) => {
+    pool.query('SELECT * FROM orders ORDER BY id DESC LIMIT 100', (err1, orders) => {
         if (err1) {
             console.error('Orders fetch error:', err1.message);
             return res.status(500).json({ error: 'Failed to fetch orders' });
         }
 
-        db.query('SELECT * FROM subscribers LIMIT 100', (err2, subs) => {
+        pool.query('SELECT * FROM subscribers LIMIT 100', (err2, subs) => {
             if (err2) {
                 console.error('Subscribers fetch error:', err2.message);
                 return res.status(500).json({ error: 'Failed to fetch subscribers' });
             }
 
-            db.query('SELECT id, name, price, image FROM menu_items ORDER BY id DESC', (err3, menu) => {
+            pool.query('SELECT id, name, price, image FROM menu_items ORDER BY id DESC', (err3, menu) => {
                 if (err3) {
                     console.error('Menu fetch error:', err3.message);
                     return res.status(500).json({ error: 'Failed to fetch menu' });
                 }
 
-                db.query('SELECT id, name, role, email, salary FROM employees', (err4, employees) => {
+                pool.query('SELECT id, name, role, email, salary FROM employees', (err4, employees) => {
                     if (err4) {
                         console.error('Employees fetch error:', err4.message);
                         return res.status(500).json({ error: 'Failed to fetch employees' });
@@ -505,7 +503,7 @@ app.get('/api/admin/data', authMiddleware, (req, res) => {
 
 // GET EMPLOYEES
 app.get('/api/admin/employees', authMiddleware, (req, res) => {
-    db.query('SELECT id, name, role FROM employees', (err, results) => {
+    pool.query('SELECT id, name, role FROM employees', (err, results) => {
         if (err) {
             console.error('Employees fetch error:', err.message);
             return res.status(500).json({ error: 'Failed to fetch employees' });
@@ -527,7 +525,7 @@ app.post('/api/admin/add-product', authMiddleware, upload.single('image'), (req,
         return res.status(400).json({ message: 'Invalid price (0-100000)' });
     }
 
-    db.query(
+    pool.query(
         'INSERT INTO menu_items (name, price, image) VALUES (?, ?, ?)',
         [name.trim(), parseFloat(price), filename],
         (err) => {
@@ -547,7 +545,7 @@ app.delete('/api/admin/delete-product/:id', authMiddleware, (req, res) => {
         return res.status(400).json({ message: 'Invalid product ID' });
     }
 
-    db.query('DELETE FROM menu_items WHERE id = ?', [productId], (err) => {
+    pool.query('DELETE FROM menu_items WHERE id = ?', [productId], (err) => {
         if (err) {
             console.error('Product delete error:', err.message);
             return res.status(500).json({ message: 'Failed to delete product' });
@@ -575,7 +573,7 @@ app.post('/api/admin/add-employee', authMiddleware, (req, res) => {
 
     const validEmail = email && validateEmail(email) ? email.toLowerCase() : 'N/A';
 
-    db.query(
+    pool.query(
         'INSERT INTO employees (name, role, email, salary) VALUES (?, ?, ?, ?)',
         [name.trim(), role.trim(), validEmail, salaryNum],
         (err) => {
@@ -595,7 +593,7 @@ app.delete('/api/admin/delete-employee/:id', authMiddleware, (req, res) => {
         return res.status(400).json({ message: 'Invalid employee ID' });
     }
 
-    db.query('DELETE FROM employees WHERE id = ?', [employeeId], (err) => {
+    pool.query('DELETE FROM employees WHERE id = ?', [employeeId], (err) => {
         if (err) {
             console.error('Employee delete error:', err.message);
             return res.status(500).json({ message: 'Failed to delete employee' });
@@ -613,7 +611,7 @@ app.post('/api/confirm-order', authMiddleware, (req, res) => {
         return res.status(400).json({ message: 'Invalid order ID' });
     }
 
-    db.query('UPDATE orders SET status = "Confirmed" WHERE id = ?', [id], (err) => {
+    pool.query('UPDATE orders SET status = "Confirmed" WHERE id = ?', [id], (err) => {
         if (err) {
             console.error('Confirm order error:', err.message);
             return res.status(500).json({ message: 'Failed to confirm order' });
@@ -624,7 +622,7 @@ app.post('/api/confirm-order', authMiddleware, (req, res) => {
 
 // GET ALL ORDERS (Protected)
 app.get('/api/orders/all', authMiddleware, (req, res) => {
-    db.query('SELECT * FROM orders ORDER BY id DESC LIMIT 500', (err, results) => {
+    pool.query('SELECT * FROM orders ORDER BY id DESC LIMIT 500', (err, results) => {
         if (err) {
             console.error('Orders fetch error:', err.message);
             return res.status(500).json({ error: 'Failed to fetch orders' });
@@ -647,7 +645,7 @@ app.get('/api/orders/all', authMiddleware, (req, res) => {
 
 // GET DELIVERY ORDERS (Protected)
 app.get('/api/delivery/orders', authMiddleware, (req, res) => {
-    db.query(
+    pool.query(
         'SELECT id, customer_name, address, total, latitude, longitude, status FROM orders WHERE status = "Confirmed" ORDER BY id DESC',
         (err, results) => {
             if (err) {
@@ -683,14 +681,14 @@ app.post('/api/orders/:orderId/status', authMiddleware, (req, res) => {
         return res.status(400).json({ message: 'Invalid status' });
     }
 
-    db.query('UPDATE orders SET status = ? WHERE id = ?', [status, orderId], (err) => {
+    pool.query('UPDATE orders SET status = ? WHERE id = ?', [status, orderId], (err) => {
         if (err) {
             console.error('Status update error:', err.message);
             return res.status(500).json({ message: 'Failed to update status' });
         }
 
         if (status === 'Delivered') {
-            db.query('SELECT customer_name, email FROM orders WHERE id = ?', [orderId], (err, results) => {
+            pool.query('SELECT customer_name, email FROM orders WHERE id = ?', [orderId], (err, results) => {
                 if (!err && results && results.length > 0) {
                     const customer = results[0];
                     sendEmail(
@@ -722,7 +720,7 @@ app.post('/api/order/rate', (req, res) => {
 
     const feedbackText = feedback ? feedback.substring(0, 500) : '';
 
-    db.query(
+    pool.query(
         'UPDATE orders SET rating = ?, feedback = ? WHERE id = ?',
         [ratingNum, feedbackText, id],
         (err) => {
@@ -737,7 +735,7 @@ app.post('/api/order/rate', (req, res) => {
 
 // GET BUSINESSES
 app.get('/api/businesses', (req, res) => {
-    db.query('SELECT * FROM businesses ORDER BY id DESC', (err, results) => {
+    pool.query('SELECT * FROM businesses ORDER BY id DESC', (err, results) => {
         if (err) {
             console.error('Businesses fetch error:', err.message);
             return res.status(500).json({ error: 'Failed to fetch businesses' });
@@ -759,7 +757,7 @@ app.post('/api/admin/add-business', authMiddleware, upload.single('image'), (req
         return res.status(400).json({ message: 'Invalid owner name' });
     }
 
-    db.query(
+    pool.query(
         'INSERT INTO businesses (shop_name, owner_name, unique_id, address, product_type, image) VALUES (?, ?, ?, ?, ?, ?)',
         [shop_name.trim(), owner_name.trim(), unique_id || 'N/A', address || 'N/A', product_type || 'N/A', filename],
         (err) => {
@@ -779,7 +777,7 @@ app.delete('/api/admin/delete-business/:id', authMiddleware, (req, res) => {
         return res.status(400).json({ message: 'Invalid business ID' });
     }
 
-    db.query('DELETE FROM businesses WHERE id = ?', [businessId], (err) => {
+    pool.query('DELETE FROM businesses WHERE id = ?', [businessId], (err) => {
         if (err) {
             console.error('Business delete error:', err.message);
             return res.status(500).json({ message: 'Failed to delete business' });
@@ -825,6 +823,6 @@ app.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM signal received');
-    db.end();
+    pool.end();
     process.exit(0);
 });
