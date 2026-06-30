@@ -47,15 +47,19 @@
     </section>
 
     <script src="script.js"></script>
-    <script>
-    // 1. Store quantities locally for the UI
+    <scrip>
+   <script>
+    // 🌟 Dynamic Base URL Detection
+    // If running via Live Server (port 5500), use local backend. Otherwise, use relative paths for production.
+    const API_BASE = window.location.port === '5500' ? 'http://localhost:3000' : '';
+    
+    // Global state for item quantities
     const quantities = {};
 
-    // 2. Fetch and render the menu
+    // 1. Fetch and Display Menu Items
     async function loadMenu() {
         try {
-            // Using absolute URL to bypass the Live Server mismatch
-            const res = await fetch('http://localhost:3000/api/menu');
+            const res = await fetch(`${API_BASE}/api/menu`); 
             
             if (!res.ok) {
                 throw new Error(`Server responded with status: ${res.status}`);
@@ -63,35 +67,41 @@
 
             const menu = await res.json();
             const container = document.getElementById('menu-container');
+            
+            if (!container) return;
             container.innerHTML = ''; 
             
             if (!menu || menu.length === 0) {
-                container.innerHTML = '<p>No items found in inventory.</p>';
+                container.innerHTML = '<p class="no-items">No items found in inventory.</p>';
                 return;
             }
 
             menu.forEach(item => {
-                quantities[item.name] = 1; // Default quantity
+                // Initialize default quantity to 1 for this item
+                if (!quantities[item.name]) {
+                    quantities[item.name] = 1;
+                }
                 
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 
+                // Fallback image handling
                 const imageUrl = item.image && item.image !== 'default.jpg' 
-                    ? `http://localhost:3000/uploads/${item.image}` 
+                    ? `${API_BASE}/uploads/${item.image}` 
                     : 'placeholder.jpg';
 
                 card.innerHTML = `
                     <img src="${imageUrl}" alt="${item.name}" crossorigin="anonymous" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22150%22 height=%22150%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';">
                     <h3>${item.name}</h3>
-                    <p>Price: ₹${parseFloat(item.price).toFixed(2)}</p>
+                    <p class="price">Price: ₹${parseFloat(item.price).toFixed(2)}</p>
                     
                     <div class="qty-control">
                         <button class="qty-btn" onclick="updateQty('${item.name}', -1)">-</button>
-                        <span class="qty-display" id="qty-${item.name}">1</span>
+                        <span class="qty-display" id="qty-${item.name}">${quantities[item.name]}</span>
                         <button class="qty-btn" onclick="updateQty('${item.name}', 1)">+</button>
                     </div>
                     
-                    <button class="raised-button" onclick="handleAddToCart('${item.name}', ${item.price}, '${item.image}')">Add to Tray</button>
+                    <button class="raised-button" onclick="handleAddToCart('${item.name}', ${item.price})">Add to Tray</button>
                 `;
                 container.appendChild(card);
             });
@@ -99,38 +109,52 @@
             console.error("Menu load error:", err);
             const container = document.getElementById('menu-container');
             if (container) {
-                container.innerHTML = '<p style="color: red; text-align: center;">Error loading inventory. Please make sure the backend server is running.</p>';
+                container.innerHTML = '<p style="color: red; text-align: center;">Error loading inventory. Please check backend connections.</p>';
             }
         }
     }
 
-    // 3. Handle the + and - buttons
-    function updateQty(name, change) {
-        const display = document.getElementById(`qty-${name}`);
-        if (!display) return;
+    // 2. Handle Quantity Counter Changes
+    function updateQty(itemName, change) {
+        if (!quantities[itemName]) quantities[itemName] = 1;
         
-        let val = parseInt(display.innerText) + change;
-        if (val < 1) val = 1; // Prevent negative or zero quantities
+        quantities[itemName] += change;
         
-        display.innerText = val;
-        quantities[name] = val;
-    }
-
-    // 4. Handle the "Add to Tray" button click (This was the missing function!)
-    function handleAddToCart(name, price, image) {
-        const qty = quantities[name] || 1;
+        // Prevent lowering quantity below 1
+        if (quantities[itemName] < 1) {
+            quantities[itemName] = 1;
+        }
         
-        // This connects to the 'addToCart' function inside your external script.js file
-        if (typeof window.addToCart === 'function') {
-            window.addToCart(name, price, qty, image); 
-        } else {
-            console.error("Cart logic not found. Ensure <script src='script.js'> is loaded above this script.");
-            alert("Cart system not loaded. Please check the console.");
+        const qtyDisplay = document.getElementById(`qty-${itemName}`);
+        if (qtyDisplay) {
+            qtyDisplay.textContent = quantities[itemName];
         }
     }
 
-    // 5. Start the process when the page loads
+    // 3. Add Items to Local Storage Cart
+    function handleAddToCart(name, price) {
+        const qty = quantities[name] || 1;
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        const existingItem = cart.find(item => item.name === name);
+        if (existingItem) {
+            existingItem.quantity += qty;
+        } else {
+            cart.push({ name, price: parseFloat(price), quantity: qty });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        alert(`${qty}x ${name} added to your tray!`);
+        
+        // Reset quantity selection back to 1 on UI after adding
+        quantities[name] = 1;
+        const qtyDisplay = document.getElementById(`qty-${name}`);
+        if (qtyDisplay) qtyDisplay.textContent = 1;
+    }
+
+    // Initialize page logic when DOM is loaded
     document.addEventListener('DOMContentLoaded', loadMenu);
+
 </script>
 </body>
 </html>
