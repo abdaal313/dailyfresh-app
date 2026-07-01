@@ -527,50 +527,54 @@
         }
 
         // ========== API HELPER ==========
-        async function apiCall(endpoint, method = 'GET', body = null) {
-            try {
-                if (!AdminAuth.isLoggedIn()) {
-                    console.warn('No token found, redirecting to login');
-                    window.location.href = 'login.html';
-                    return null;
-                }
-
-                const options = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...AdminAuth.getAuthHeader()
-                    }
-                };
-
-                if (body) {
-                    options.body = JSON.stringify(body);
-                }
-
-                // FIXED: relative path instead of hardcoded localhost:3000
-                const response = await fetch(endpoint, options);
-
-                if (response.status === 401) {
-                    console.error('Unauthorized - token invalid');
-                    AdminAuth.clearToken();
-                    // FIXED: was redirecting to admin.html (itself) — now goes to login.html
-                    window.location.href = 'login.html';
-                    return null;
-                }
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    console.error(`API Error: ${data.error || data.message}`);
-                    return null;
-                }
-
-                return data;
-            } catch (error) {
-                console.error('API Call Error:', error);
-                return null;
-            }
+   async function apiCall(endpoint, method = 'GET', body = null) {
+    try {
+        // 1. Check Auth (except for the login endpoint)
+        if (!AdminAuth.isLoggedIn() && !endpoint.includes('login')) {
+            console.warn('No token found, redirecting to login');
+            window.location.href = 'login.html';
+            return null;
         }
+
+        // 2. Prepare Request Options
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...AdminAuth.getAuthHeader()
+            }
+        };
+
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+
+        // 3. Make Request (using relative path to avoid CSP errors)
+        const response = await fetch(endpoint, options);
+
+        // 4. Handle Unauthorized (401)
+        if (response.status === 401) {
+            console.error('Unauthorized - token invalid');
+            AdminAuth.clearToken();
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        // 5. Parse and Return Data
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error(`API Error: ${data.error || data.message || 'Unknown error'}`);
+            return null;
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error('API Call Error:', error);
+        return null;
+    }
+}
 
         // ========== PAGE INITIALIZATION ==========
         document.addEventListener('DOMContentLoaded', () => {
