@@ -23,7 +23,7 @@ app.use(
                 styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
                connectSrc: [
     "'self'",
-    "https://https://dailyfresh-app.onrender.com",   // <-- your actual Render URL
+    "https://dailyfresh-app.onrender.com",   // <-- your actual Render URL
     "https://nominatim.openstreetmap.org",  // if you're using OSM search/geocoding
     "https://unpkg.com"
 ],
