@@ -57,7 +57,10 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-app.use('/uploads', express.static('uploads'));
+const path = require('path');
+// ...
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(express.static(__dirname));
 
 // ========== RATE LIMITING ==========
