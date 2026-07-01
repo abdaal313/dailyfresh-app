@@ -274,7 +274,7 @@ window.completeOrder = async function () {
     };
 
     try {
-        const response = await fetch('http://localhost:3000/api/checkout', {
+        const response = await fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
@@ -318,7 +318,7 @@ window.subscribeNewsletter = async function () {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/subscribe', {
+        const response = await fetch('/api/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -348,7 +348,7 @@ window.trackOrder = async function () {
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/api/order/${orderId}`);
+        const response = await fetch(`/api/order/${orderId}`);
         const order = await response.json();
 
         if (response.ok) {
