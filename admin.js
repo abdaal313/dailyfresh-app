@@ -1,18 +1,19 @@
 // Helper to get headers with the token
 const getHeaders = () => ({
-    'Authorization': `Bearer ${localStorage.getItem('adminAuth')}`
+    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
 });
 
 // Helper for JSON requests
 const getJSONHeaders = () => ({
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('adminAuth')}`
+    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
 });
 
 // --- 1. AUTHENTICATION CHECK ---
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('adminAuth');
+    const token = localStorage.getItem('adminToken');
     if (!token) {
+        console.warn('❌ No adminToken found, redirecting to login...');
         window.location.href = 'login.html';
         return;
     }
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 2. LOGOUT FUNCTION ---
 window.logout = function() {
     if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('adminAuth');
+        localStorage.removeItem('adminToken');
         window.location.href = 'login.html';
     }
 };
@@ -35,8 +36,18 @@ async function loadAdminData() {
             fetch('/api/businesses', { headers: getHeaders() })
         ]);
 
-        if (resData.status === 401) window.location.href = 'login.html';
-        
+        if (resData.status === 401 || resBiz.status === 401) {
+            console.error('Unauthorized - token invalid or expired');
+            localStorage.removeItem('adminToken');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (!resData.ok || !resBiz.ok) {
+            console.error('Server error loading admin data:', resData.status, resBiz.status);
+            return;
+        }
+
         const data = await resData.json();
         const businesses = await resBiz.json();
 
@@ -114,21 +125,25 @@ window.confirmOrder = async (id) => {
         body: JSON.stringify({ orderId: id })
     });
     if (res.ok) loadAdminData();
+    else console.error('Failed to confirm order:', res.status);
 };
 
 window.deleteProduct = async (id) => {
     const res = await fetch(`/api/admin/delete-product/${id}`, { method: 'DELETE', headers: getHeaders() });
     if (res.ok) loadAdminData();
+    else console.error('Failed to delete product:', res.status);
 };
 
 window.deleteEmployee = async (id) => {
     const res = await fetch(`/api/admin/delete-employee/${id}`, { method: 'DELETE', headers: getHeaders() });
     if (res.ok) loadAdminData();
+    else console.error('Failed to delete employee:', res.status);
 };
 
 window.deleteBusiness = async (id) => {
     const res = await fetch(`/api/admin/delete-business/${id}`, { method: 'DELETE', headers: getHeaders() });
     if (res.ok) loadAdminData();
+    else console.error('Failed to delete business:', res.status);
 };
 
 window.addProduct = async () => {
@@ -138,4 +153,39 @@ window.addProduct = async () => {
     if (document.getElementById('p-image').files[0]) fd.append('image', document.getElementById('p-image').files[0]);
     const res = await fetch('/api/admin/add-product', { method: 'POST', headers: getHeaders(), body: fd });
     if (res.ok) loadAdminData();
+    else console.error('Failed to add product:', res.status);
+};
+
+// ADDED: this was missing — needed if your HTML has an "Add Employee" button
+window.addEmployee = async () => {
+    const name = document.getElementById('e-name')?.value.trim();
+    const role = document.getElementById('e-role')?.value.trim();
+    const email = document.getElementById('e-email')?.value.trim();
+    const salary = document.getElementById('e-salary')?.value.trim();
+
+    if (!name || !role) {
+        console.error('Name and role are required');
+        return;
+    }
+
+    const res = await fetch('/api/admin/add-employee', {
+        method: 'POST',
+        headers: getJSONHeaders(),
+        body: JSON.stringify({
+            name,
+            role,
+            email: email || null,
+            salary: salary ? parseFloat(salary) : 0
+        })
+    });
+
+    if (res.ok) {
+        if (document.getElementById('e-name')) document.getElementById('e-name').value = '';
+        if (document.getElementById('e-role')) document.getElementById('e-role').value = '';
+        if (document.getElementById('e-email')) document.getElementById('e-email').value = '';
+        if (document.getElementById('e-salary')) document.getElementById('e-salary').value = '';
+        loadAdminData();
+    } else {
+        console.error('Failed to add employee:', res.status);
+    }
 };
