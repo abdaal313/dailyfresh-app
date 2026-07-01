@@ -496,44 +496,42 @@
         </table>
     </div>
 
-    <!-- Include admin.js for authentication and API calls -->
     <script>
         // ========== TOKEN MANAGEMENT CLASS ==========
-  class AdminAuth {
-    static setToken(token) {
-        localStorage.setItem('adminToken', token);
-    }
+        class AdminAuth {
+            static setToken(token) {
+                localStorage.setItem('adminToken', token);
+            }
 
-    static getToken() {
-        return localStorage.getItem('adminToken');
-    }
+            static getToken() {
+                return localStorage.getItem('adminToken');
+            }
 
-    static hasToken() {
-        return !!this.getToken();
-    }
+            static hasToken() {
+                return !!this.getToken();
+            }
 
-    // Simplification: Don't rely on local storage expiry calculation for now
-    static isLoggedIn() {
-        return this.hasToken(); 
-    }
+            static isLoggedIn() {
+                return this.hasToken();
+            }
 
-    static clearToken() {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('tokenExpiry');
-    }
+            static clearToken() {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('tokenExpiry');
+            }
 
-    static getAuthHeader() {
-        const token = this.getToken();
-        return token ? { 'Authorization': `Bearer ${token}` } : {};
-    }
-}
+            static getAuthHeader() {
+                const token = this.getToken();
+                return token ? { 'Authorization': `Bearer ${token}` } : {};
+            }
+        }
 
         // ========== API HELPER ==========
         async function apiCall(endpoint, method = 'GET', body = null) {
             try {
                 if (!AdminAuth.isLoggedIn()) {
-                    console.warn('Token expired, redirecting to login');
-                    window.location.href = 'admin.html';
+                    console.warn('No token found, redirecting to login');
+                    window.location.href = 'login.html';
                     return null;
                 }
 
@@ -549,12 +547,14 @@
                     options.body = JSON.stringify(body);
                 }
 
-                const response = await fetch(`http://localhost:3000${endpoint}`, options);
+                // FIXED: relative path instead of hardcoded localhost:3000
+                const response = await fetch(endpoint, options);
 
                 if (response.status === 401) {
                     console.error('Unauthorized - token invalid');
                     AdminAuth.clearToken();
-                    window.location.href = 'admin.html';
+                    // FIXED: was redirecting to admin.html (itself) — now goes to login.html
+                    window.location.href = 'login.html';
                     return null;
                 }
 
@@ -573,35 +573,34 @@
         }
 
         // ========== PAGE INITIALIZATION ==========
-   // Replace your existing authentication logic with this:
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Explicitly check for adminToken
-    const token = localStorage.getItem('adminToken'); 
-    
-    if (!token) {
-        console.warn('❌ No adminToken found, redirecting...');
-        window.location.href = 'login.html'; // Ensure this matches your login filename
-        return;
-    }
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('adminToken');
 
-    console.log('✅ User authenticated with adminToken');
-    loadAllData(); // Now it will actually run!
-});
-    // 3. Logout button listener
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        if (confirm('Are you sure you want to logout?')) {
-            AdminAuth.clearToken();
-            window.location.href = 'admin.html';
-        }
-    });
+            if (!token) {
+                console.warn('❌ No adminToken found, redirecting...');
+                window.location.href = 'login.html';
+                return;
+            }
 
-    // 4. Refresh interval
-    setInterval(() => {
-        if (AdminAuth.isLoggedIn()) {
+            console.log('✅ User authenticated with adminToken');
             loadAllData();
-        }
-    }, 30000);
 
+            // Logout button listener
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    AdminAuth.clearToken();
+                    // FIXED: was redirecting to admin.html (itself) — now goes to login.html
+                    window.location.href = 'login.html';
+                }
+            });
+
+            // Refresh interval
+            setInterval(() => {
+                if (AdminAuth.isLoggedIn()) {
+                    loadAllData();
+                }
+            }, 30000);
+        });
 
         // ========== LOAD ALL DATA ==========
         async function loadAllData() {
@@ -727,7 +726,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const token = AdminAuth.getToken();
-                const response = await fetch('http://localhost:3000/api/admin/add-product', {
+                // FIXED: relative path instead of hardcoded localhost:3000
+                const response = await fetch('/api/admin/add-product', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -821,11 +821,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!revenueCtx || !statusCtx) return;
 
-            // Destroy existing charts
             if (revenueChart) revenueChart.destroy();
             if (statusChart) statusChart.destroy();
 
-            // Revenue chart
             revenueChart = new Chart(revenueCtx, {
                 type: 'bar',
                 data: {
@@ -852,7 +850,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Status distribution chart
             const statusCounts = orders.reduce((acc, o) => {
                 acc[o.status] = (acc[o.status] || 0) + 1;
                 return acc;
