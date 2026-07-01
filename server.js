@@ -21,7 +21,12 @@ app.use(
                 defaultSrc: ["'self'"],
                 scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
-                connectSrc: ["'self'", "http://localhost:3000", "http://127.0.0.1:3000", "https://unpkg.com"],
+               connectSrc: [
+    "'self'",
+    "https://https://dailyfresh-app.onrender.com",   // <-- your actual Render URL
+    "https://nominatim.openstreetmap.org",  // if you're using OSM search/geocoding
+    "https://unpkg.com"
+],
                 
                 // FIXED: Added unpkg.com (for the marker pin) and base openstreetmap
                 imgSrc: ["'self'", "data:", "blob:", "https://*.tile.openstreetmap.org", "https://tile.openstreetmap.org", "https://unpkg.com"],
