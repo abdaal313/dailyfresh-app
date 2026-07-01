@@ -8,8 +8,7 @@ E
 node_modules/
 package-lock.json
  
-# Uploads directory
-uploads/
+
  
 # Logs
 *.log

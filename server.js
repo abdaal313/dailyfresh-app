@@ -60,7 +60,8 @@ if (!fs.existsSync(uploadDir)) {
 // ...
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use(express.static(__dirname));
+// This line (which you likely already have) serves everything in your 'public' folder
+app.use(express.static('public'));
 
 // ========== RATE LIMITING ==========
 
