@@ -347,6 +347,10 @@
             <h3>🍽️ Menu Items</h3>
             <p id="stat-products">0</p>
         </div>
+        <div class="card stat-card">
+            <h3>🏪 Business Partners</h3>
+            <p id="stat-businesses">0</p>
+        </div>
     </div>
 
     <!-- Charts -->
@@ -476,6 +480,59 @@
         </table>
     </div>
 
+    <!-- ===== BUSINESS PARTNERS SECTION ===== -->
+    <div class="section-title">
+        <h3>🏪 Business Partners Management</h3>
+    </div>
+    <div class="card">
+        <div class="success-message" id="business-success">✅ Business added successfully!</div>
+        <div class="error-message" id="business-error"></div>
+        <div class="form-group">
+            <div class="form-row">
+                <div>
+                    <input type="text" id="b-shop-name" placeholder="Shop Name" required>
+                </div>
+                <div>
+                    <input type="text" id="b-owner-name" placeholder="Owner Name" required>
+                </div>
+                <div>
+                    <input type="text" id="b-unique-id" placeholder="Unique ID (Optional)">
+                </div>
+                <div>
+                    <input type="text" id="b-product-type" placeholder="Product Type (Optional)">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <input type="text" id="b-address" placeholder="Address (Optional)">
+                </div>
+                <div>
+                    <input type="file" id="b-image" accept="image/*">
+                </div>
+            </div>
+            <button onclick="window.addBusiness()">💾 Add Business</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <table id="business-table">
+            <thead>
+                <tr>
+                    <th>Shop Name</th>
+                    <th>Owner</th>
+                    <th>Product Type</th>
+                    <th>Address</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5" class="no-data">Loading business partners...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- ===== SUBSCRIBERS SECTION ===== -->
     <div class="section-title">
         <h3>📧 Newsletter Subscribers</h3>
@@ -527,54 +584,50 @@
         }
 
         // ========== API HELPER ==========
-   async function apiCall(endpoint, method = 'GET', body = null) {
-    try {
-        // 1. Check Auth (except for the login endpoint)
-        if (!AdminAuth.isLoggedIn() && !endpoint.includes('login')) {
-            console.warn('No token found, redirecting to login');
-            window.location.href = 'login.html';
-            return null;
-        }
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            try {
+                if (!AdminAuth.isLoggedIn()) {
+                    console.warn('No token found, redirecting to login');
+                    window.location.href = 'login.html';
+                    return null;
+                }
 
-        // 2. Prepare Request Options
-        const options = {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                ...AdminAuth.getAuthHeader()
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...AdminAuth.getAuthHeader()
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                // FIXED: relative path instead of hardcoded localhost:3000
+                const response = await fetch(endpoint, options);
+
+                if (response.status === 401) {
+                    console.error('Unauthorized - token invalid');
+                    AdminAuth.clearToken();
+                    // FIXED: was redirecting to admin.html (itself) — now goes to login.html
+                    window.location.href = 'login.html';
+                    return null;
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    console.error(`API Error: ${data.error || data.message}`);
+                    return null;
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Call Error:', error);
+                return null;
             }
-        };
-
-        if (body) {
-            options.body = JSON.stringify(body);
         }
-
-        // 3. Make Request (using relative path to avoid CSP errors)
-        const response = await fetch(endpoint, options);
-
-        // 4. Handle Unauthorized (401)
-        if (response.status === 401) {
-            console.error('Unauthorized - token invalid');
-            AdminAuth.clearToken();
-            window.location.href = 'login.html';
-            return null;
-        }
-
-        // 5. Parse and Return Data
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error(`API Error: ${data.error || data.message || 'Unknown error'}`);
-            return null;
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error('API Call Error:', error);
-        return null;
-    }
-}
 
         // ========== PAGE INITIALIZATION ==========
         document.addEventListener('DOMContentLoaded', () => {
@@ -610,7 +663,11 @@
         async function loadAllData() {
             console.log('📊 Loading admin data...');
 
-            const data = await apiCall('/api/admin/data', 'GET');
+            const [data, businesses] = await Promise.all([
+                apiCall('/api/admin/data', 'GET'),
+                apiCall('/api/businesses', 'GET')
+            ]);
+
             if (!data) {
                 console.error('Failed to load data');
                 return;
@@ -624,12 +681,14 @@
             document.getElementById('stat-revenue').textContent = '₹' + totalRevenue.toFixed(2);
             document.getElementById('stat-subs').textContent = (data.subs || []).length;
             document.getElementById('stat-products').textContent = (data.menu || []).length;
+            document.getElementById('stat-businesses').textContent = (businesses || []).length;
 
             // Render tables
             renderMenuTable(data.menu || []);
             renderOrdersTable(data.orders || []);
             renderEmployeesTable(data.employees || []);
             renderSubscribersTable(data.subs || []);
+            renderBusinessTable(businesses || []);
 
             // Initialize charts
             initCharts(data.orders || []);
@@ -690,6 +749,26 @@
                     <td>${emp.email || 'N/A'}</td>
                     <td>
                         <button class="delete-btn" onclick="window.deleteEmployee(${emp.id})">🗑️ Remove</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderBusinessTable(businesses) {
+            const tbody = document.querySelector('#business-table tbody');
+            if (!businesses || businesses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No business partners yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = businesses.map(biz => `
+                <tr>
+                    <td>${escapeHtml(biz.shop_name)}</td>
+                    <td>${escapeHtml(biz.owner_name)}</td>
+                    <td>${biz.product_type || 'N/A'}</td>
+                    <td>${biz.address || 'N/A'}</td>
+                    <td>
+                        <button class="delete-btn" onclick="window.deleteBusiness(${biz.id})">🗑️ Remove</button>
                     </td>
                 </tr>
             `).join('');
@@ -801,6 +880,68 @@
             if (!confirm('Remove this employee?')) return;
 
             const data = await apiCall(`/api/admin/delete-employee/${empId}`, 'DELETE');
+            if (data) {
+                loadAllData();
+            }
+        };
+
+        window.addBusiness = async function() {
+            const shopName = document.getElementById('b-shop-name').value.trim();
+            const ownerName = document.getElementById('b-owner-name').value.trim();
+            const uniqueId = document.getElementById('b-unique-id').value.trim();
+            const productType = document.getElementById('b-product-type').value.trim();
+            const address = document.getElementById('b-address').value.trim();
+            const imageFile = document.getElementById('b-image').files[0];
+
+            if (!shopName || !ownerName) {
+                showError('business-error', 'Shop name and owner name are required');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('shop_name', shopName);
+                formData.append('owner_name', ownerName);
+                formData.append('unique_id', uniqueId || 'N/A');
+                formData.append('address', address || 'N/A');
+                formData.append('product_type', productType || 'N/A');
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
+
+                const token = AdminAuth.getToken();
+                const response = await fetch('/api/admin/add-business', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('business-success', 'Business added successfully!');
+                    document.getElementById('b-shop-name').value = '';
+                    document.getElementById('b-owner-name').value = '';
+                    document.getElementById('b-unique-id').value = '';
+                    document.getElementById('b-product-type').value = '';
+                    document.getElementById('b-address').value = '';
+                    document.getElementById('b-image').value = '';
+                    loadAllData();
+                } else {
+                    showError('business-error', data.message || 'Failed to add business');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('business-error', 'Server error: ' + error.message);
+            }
+        };
+
+        window.deleteBusiness = async function(businessId) {
+            if (!confirm('Remove this business partner?')) return;
+
+            const data = await apiCall(`/api/admin/delete-business/${businessId}`, 'DELETE');
             if (data) {
                 loadAllData();
             }
