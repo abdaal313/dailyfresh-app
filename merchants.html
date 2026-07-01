@@ -38,7 +38,7 @@
     <script>
         async function loadShops() {
             try {
-                const res = await fetch('http://localhost:3000/api/businesses');
+                const res = await fetch('/api/businesses');
                 const shops = await res.json();
                 const list = document.getElementById('shop-list');
                 list.innerHTML = '';
@@ -46,7 +46,7 @@
                 shops.forEach(s => {
                     list.innerHTML += `
                         <div class="shop-card">
-                            <img class="shop-img" src="http://localhost:3000/uploads/${s.image}" onerror="this.src='default.jpg'">
+                            <img class="shop-img" src="/uploads/${s.image}" onerror="this.src='default.jpg'">
                             <div class="shop-info">
                                 <div class="left-col">
                                     <h3 class="shop-name">${s.shop_name}</h3>
