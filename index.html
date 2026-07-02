@@ -226,7 +226,7 @@
             if (!email) return alert("Please enter a valid email.");
 
             try {
-                const response = await fetch('http://localhost:3000/api/subscribe', {
+                const response = await fetch('/api/subscribe', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -241,7 +241,7 @@
                 }
             } catch (err) {
                 console.error("Connection Error:", err);
-                alert("Could not connect to server. Ensure port 3000 is open and node server.js is running.");
+                alert("loading......");
             }
         });
     </script>
