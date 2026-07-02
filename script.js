@@ -334,7 +334,7 @@ window.subscribeNewsletter = async function () {
         }
     } catch (err) {
         console.error('Subscribe error:', err);
-        alert('❌ Could not connect to the server. Make sure it is running.');
+        alert('loading....');
     }
 };
 
