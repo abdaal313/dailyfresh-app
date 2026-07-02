@@ -39,6 +39,20 @@
         .error-message.show { display: block; }
         .success-message { color: #2e7d32; font-size: 0.85rem; padding: 10px; background: #e8f5e9; border-radius: 6px; margin-top: 10px; display: none; }
         .success-message.show { display: block; }
+        @media (max-width: 768px) {
+        .checkout-grid { 
+            grid-template-columns: 1fr !important; 
+        }
+        .nav-links { display: none; } /* Optional: Hide extra links to save space */
+        .payment-options { flex-direction: column; }
+        .payment-tab { width: 100%; margin-bottom: 10px; }
+        body { padding: 10px; }
+    }
+    #checkout-map { width: 100% !important; max-width: 100%; }
+    input, textarea, select { max-width: 100%; box-sizing: border-box; }
+    
+    /* Improve button touch targets for mobile */
+    button { min-height: 44px; }
     </style>
 </head>
 <body>
