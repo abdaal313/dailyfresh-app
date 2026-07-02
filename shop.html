@@ -16,6 +16,10 @@
         #cart-items { list-style: none; padding: 0; margin: 0; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         .checkout-area { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+        .cart-item-controls { display: flex; align-items: center; gap: 8px; }
+.cart-qty-btn { width: 24px; height: 24px; border-radius: 50%; border: none; background: #e2e8f0; cursor: pointer; font-weight: bold; }
+.cart-remove-btn { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 13px; margin-left: 10px; }
+.cart-item-name { flex: 1; }
     </style>
 </head>
 <body>
@@ -46,12 +50,8 @@
             <a href="checkout.html" class="checkout-btn raised-button">Proceed to Checkout</a>
         </div>
     </section>
-
-    <script src="script.js"></script>
-    <scrip>
-   <script>
+<script>
     // 🌟 Dynamic Base URL Detection
-    // If running via Live Server (port 5500), use local backend. Otherwise, use relative paths for production.
     const API_BASE = window.location.port === '5500' ? 'http://localhost:3000' : '';
     
     // Global state for item quantities
@@ -78,7 +78,6 @@
             }
 
             menu.forEach(item => {
-                // Initialize default quantity to 1 for this item
                 if (!quantities[item.name]) {
                     quantities[item.name] = 1;
                 }
@@ -86,26 +85,24 @@
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 
-             // --- UPDATED IMAGE HANDLING ---
-// Use a relative path so it works on both localhost AND Render
-const imageUrl = item.image && item.image !== 'default.jpg' 
-    ? `/uploads/${item.image}` 
-    : 'placeholder.jpg';
+                const imageUrl = item.image && item.image !== 'default.jpg' 
+                    ? `/uploads/${item.image}` 
+                    : 'placeholder.jpg';
 
-card.innerHTML = `
-    <img src="${imageUrl}" alt="${item.name}" crossorigin="anonymous" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22150%22 height=%22150%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';">
-    <h3>${item.name}</h3>
-    <p class="price">Price: ₹${parseFloat(item.price).toFixed(2)}</p>
-    
-    <div class="qty-control">
-        <button class="qty-btn" onclick="updateQty('${item.name}', -1)">-</button>
-        <span class="qty-display" id="qty-${item.name}">${quantities[item.name] || 0}</span>
-        <button class="qty-btn" onclick="updateQty('${item.name}', 1)">+</button>
-    </div>
-    
-    <button class="raised-button" onclick="handleAddToCart('${item.name}', ${item.price})">Add to Tray</button>
-`;
-container.appendChild(card);
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.name}" crossorigin="anonymous" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22150%22 height=%22150%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                    <h3>${item.name}</h3>
+                    <p class="price">Price: ₹${parseFloat(item.price).toFixed(2)}</p>
+                    
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="updateQty('${item.name}', -1)">-</button>
+                        <span class="qty-display" id="qty-${item.name}">${quantities[item.name] || 0}</span>
+                        <button class="qty-btn" onclick="updateQty('${item.name}', 1)">+</button>
+                    </div>
+                    
+                    <button class="raised-button" onclick="handleAddToCart('${item.name}', ${item.price})">Add to Tray</button>
+                `;
+                container.appendChild(card);
             });
         } catch (err) {
             console.error("Error fetching menu:", err);
@@ -116,13 +113,12 @@ container.appendChild(card);
         }
     }
 
-    // 2. Handle Quantity Counter Changes
+    // 2. Handle Quantity Counter Changes (on product cards)
     function updateQty(itemName, change) {
         if (!quantities[itemName]) quantities[itemName] = 1;
         
         quantities[itemName] += change;
         
-        // Prevent lowering quantity below 1
         if (quantities[itemName] < 1) {
             quantities[itemName] = 1;
         }
@@ -146,17 +142,85 @@ container.appendChild(card);
         }
         
         localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
         alert(`${qty}x ${name} added to your tray!`);
         
-        // Reset quantity selection back to 1 on UI after adding
         quantities[name] = 1;
         const qtyDisplay = document.getElementById(`qty-${name}`);
         if (qtyDisplay) qtyDisplay.textContent = 1;
     }
 
-    // Initialize page logic when DOM is loaded
-    document.addEventListener('DOMContentLoaded', loadMenu);
+    // 4. Render Cart Count / Tray / Total
+    function renderCart() {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+            const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalQty;
+        }
+        
+        const cartItemsEl = document.getElementById('cart-items');
+        if (cartItemsEl) {
+            cartItemsEl.innerHTML = '';
+            
+            if (cart.length === 0) {
+                cartItemsEl.innerHTML = '<li class="cart-item">Your tray is empty.</li>';
+            }
+            
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'cart-item';
+                li.innerHTML = `
+                    <span class="cart-item-name">${item.name}</span>
+                    <div class="cart-item-controls">
+                        <button class="cart-qty-btn" onclick="updateCartQty('${item.name}', -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="cart-qty-btn" onclick="updateCartQty('${item.name}', 1)">+</button>
+                        <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+                        <button class="cart-remove-btn" onclick="removeFromCart('${item.name}')">Remove</button>
+                    </div>
+                `;
+                cartItemsEl.appendChild(li);
+            });
+        }
+        
+        const cartTotalEl = document.getElementById('cart-total');
+        if (cartTotalEl) {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotalEl.textContent = total.toFixed(2);
+        }
+    }
 
+    // 5. Adjust quantity of an item already in the cart
+    function updateCartQty(name, change) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const item = cart.find(i => i.name === name);
+        if (!item) return;
+        
+        item.quantity += change;
+        
+        if (item.quantity <= 0) {
+            cart = cart.filter(i => i.name !== name);
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+    }
+
+    // 6. Remove an item entirely from the cart
+    function removeFromCart(name) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart = cart.filter(i => i.name !== name);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+    }
+
+    // Initialize page logic when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMenu();
+        renderCart();
+    });
 </script>
 </body>
 </html>

@@ -195,7 +195,6 @@ const authMiddleware = (req, res, next) => {
 
     // 3. CHECK OPTION B: Delivery Portal Password
     // Check if the provided password matches your hardcoded value
-   // Check for Delivery Portal Password securely
     if (portalPassword && portalPassword === process.env.DELIVERY_PASSWORD) {
         req.isDeliveryPartner = true; // Mark request as coming from partner
         return next();

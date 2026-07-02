@@ -53,6 +53,9 @@
     
     /* Improve button touch targets for mobile */
     button { min-height: 44px; }
+    .qty-control-checkout { display: flex; align-items: center; gap: 8px; }
+.qty-btn-checkout { width: 26px; height: 26px; border-radius: 50%; border: none; background: #e2e8f0; cursor: pointer; font-weight: bold; }
+.remove-btn-checkout { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -222,6 +225,7 @@
             initializeMap();
             formatCardInputs();
             checkStorageAccess();
+            renderCheckoutCart();
         });
 
         function checkStorageAccess() {
@@ -317,6 +321,70 @@
                     document.getElementById('address-result').style.display = 'none';
                 });
         }
+        function renderCheckoutCart() {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const container = document.getElementById('checkout-cart-items');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (cart.length === 0) {
+        container.innerHTML = '<p style="color:#666;">Your cart is empty.</p>';
+    }
+
+    cart.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'product-item';
+        row.innerHTML = `
+            <div class="product-details">
+                <h4>${item.name}</h4>
+                <p class="product-price">₹${item.price.toFixed(2)} each</p>
+            </div>
+            <div class="qty-control-checkout">
+                <button class="qty-btn-checkout" onclick="updateCheckoutQty('${item.name}', -1)">-</button>
+                <span>${item.quantity}</span>
+                <button class="qty-btn-checkout" onclick="updateCheckoutQty('${item.name}', 1)">+</button>
+                <button class="remove-btn-checkout" onclick="removeFromCheckoutCart('${item.name}')">Remove</button>
+            </div>
+            <div class="product-price">₹${(item.price * item.quantity).toFixed(2)}</div>
+        `;
+        container.appendChild(row);
+    });
+
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    document.getElementById('checkout-total').textContent = total.toFixed(2);
+
+    const upiAmount = document.getElementById('upi-amount');
+    if (upiAmount) upiAmount.textContent = total.toFixed(2);
+
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) {
+        const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = totalQty;
+    }
+}
+
+function updateCheckoutQty(name, change) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const item = cart.find(i => i.name === name);
+    if (!item) return;
+
+    item.quantity += change;
+
+    if (item.quantity <= 0) {
+        cart = cart.filter(i => i.name !== name);
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCheckoutCart();
+}
+
+function removeFromCheckoutCart(name) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(i => i.name !== name);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCheckoutCart();
+}
 
         function formatCardInputs() {
             const cardInput = document.getElementById('card-number');
